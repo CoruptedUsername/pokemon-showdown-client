@@ -602,7 +602,7 @@ class TeamEditorState extends PSModel {
 		return Math.trunc(val);
 	}
 	export(compat?: boolean) {
-		return Teams.export(this.sets, this.dex, !compat);
+		return Teams.export(this.sets, this.dex, compat);
 	}
 	import(value: string) {
 		this.sets = PSTeambuilder.importTeam(value);
@@ -1650,7 +1650,7 @@ class TeamTextbox extends preact.Component<{
 					<i class="fa fa-copy" aria-hidden></i> Copy
 				</button> {}
 				<label class="checkbox inline">
-					<input type="checkbox" name="compat" onChange={this.changeCompat} defaultChecked/> Old export format
+					<input type="checkbox" name="compat" onChange={this.changeCompat}/> New export format
 				</label>
 			</p>
 			<div class="teameditor-text">
