@@ -1650,7 +1650,7 @@ class TeamTextbox extends preact.Component<{
 					<i class="fa fa-copy" aria-hidden></i> Copy
 				</button> {}
 				<label class="checkbox inline">
-					<input type="checkbox" name="compat" onChange={this.changeCompat} checked/> Old export format
+					<input type="checkbox" name="compat" onChange={this.changeCompat} defaultChecked/> Old export format
 				</label>
 			</p>
 			<div class="teameditor-text">
