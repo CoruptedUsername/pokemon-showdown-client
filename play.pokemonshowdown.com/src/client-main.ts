@@ -595,7 +595,7 @@ class PSTeams extends PSStreamModel<'team' | 'format'> {
  *********************************************************************/
 
 export type PSLoginState = { error?: string, success?: true, name?: string, needsPassword?: true, needsGoogle?: true };
-class PSUser extends PSStreamModel<PSLoginState | null> {
+export class PSUser extends PSStreamModel<PSLoginState | null> {
 	name = "";
 	group = '';
 	userid = "" as ID;
@@ -665,47 +665,20 @@ class PSUser extends PSStreamModel<PSLoginState | null> {
 		}
 		this.loggingIn = name;
 		this.update(null);
-		PSLoginServer.rawQuery(
-			'getassertion', { userid, challstr: this.challstr }
-		).then(res => {
-			this.handleAssertion(name, res);
+		OfficialAuth.getAssertion(this).then(res => {
+			if (res === null) {
+				OfficialAuth.authorize(this);
+			} else {
+				this.handleAssertion(name, res);
+			}
 			this.updateRegExp();
-		});
+		}).catch(() => OfficialAuth.authorize(this));
 	}
 	changeNameWithPassword(name: string, password: string, special: PSLoginState = { needsPassword: true }) {
-		this.loggingIn = name;
-		if (!password && !special) {
-			this.updateLogin({
-				name,
-				error: "Password can't be empty.",
-				...special as any,
-			});
+		if (!PS.rooms['login']) {
+			PS.join('login' as RoomID);
+			return;
 		}
-		this.update(null);
-		PSLoginServer.query(
-			'login', { name, pass: password, challstr: this.challstr }
-		).then(data => {
-			this.loggingIn = null;
-			if (data?.curuser?.loggedin) {
-				// success!
-				const username = data.curuser.loggedin.username;
-				this.registered = { name: username, userid: toID(username) };
-				this.handleAssertion(name, data.assertion);
-			} else {
-				// wrong password
-				if (special.needsGoogle) {
-					try {
-						// @ts-expect-error gapi included dynamically
-						gapi.auth2.getAuthInstance().signOut();
-					} catch {}
-				}
-				this.updateLogin({
-					name,
-					error: data?.error || 'Wrong password.',
-					...special as any,
-				});
-			}
-		});
 	}
 	updateLogin(update: PSLoginState) {
 		this.update(update);
@@ -744,19 +717,16 @@ class PSUser extends PSStreamModel<PSLoginState | null> {
 		}
 	}
 	logOut() {
-		PSLoginServer.query(
-			'logout', { userid: this.userid }
-		);
-		PS.send(`/logout`);
-		PS.connection?.disconnect();
-
-		PS.alert("You have been logged out and disconnected.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
-		this.name = "";
-		this.group = '';
-		this.userid = "" as ID;
-		this.named = false;
-		this.registered = null;
-		this.update(null);
+		OfficialAuth.revoke().then(() => {
+			PS.send(`/logout`);
+			PS.alert("You have been logged out.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
+			this.name = "";
+			this.group = '';
+			this.userid = "" as ID;
+			this.named = false;
+			this.registered = null;
+			this.update(null);
+		}).catch(() => {PS.alert("Error logging out: Failed to revoke auth access."); } );
 	}
 
 	updateRegExp() {
@@ -2734,3 +2704,254 @@ export const PS = new class extends PSModel {
 		}
 	}
 };
+
+/**********************************************************************
+ * OfficialAuth
+ *********************************************************************/
+export class OfficialAuthError extends Error {
+	constructor(operation: string, statusCode: number | null = null) {
+		super(`Official auth error in operation '${operation}'.` + (statusCode !== null ? "" : `Status code: ${statusCode!.toString()}`));
+		this.name = 'OfficialAuthError';
+		Object.setPrototypeOf(this, OfficialAuthError.prototype);
+	}
+}
+
+/**
+ * Quick and dirty interface draft; methods to place requests are located here.
+ * Please check pre and post conditions.
+ */
+export const OfficialAuth = new class {
+	apiUrl = "https://play.pokemonshowdown.com/api/oauth/";
+	clientId = "5310ac68ea191701f786";
+	redirectURI = document.location.protocol + "//" + Config.routes.client;
+
+	/**
+	 * Returns a new URL object with the given api endpoint.
+	 * @param endpoint The endpoint to reach, directly behind oauth.
+	 * @pre endpoint is of type string with length >= 0, whose first character may not be /
+	 * @post a new URL object containing the API url appended by the given endpoint.
+	 */
+	requestUrl(endpoint: string): URL {
+		console.assert(endpoint.length >= 0, "No endpoint given");
+		console.assert(!endpoint.startsWith("/"), "Endpoint starts with /");
+		return new URL(this.apiUrl + endpoint);
+	}
+
+	/**
+	 * Refreshes the currently stored auth token in cookies.
+	 * Returns false if no token was found, or it already expired.
+	 * True if operation succeeded.
+	 */
+	async refreshToken(): Promise<boolean> {
+		console.debug("Refreshing token.");
+		const token = localStorage.getItem("ps-token");
+		if (!token) {
+			console.debug("Token not found.");
+			return false;
+		}
+		const tokenExpiry = Number(localStorage.getItem("ps-token-expiry"));
+		if (!tokenExpiry) {
+			console.debug("Token expiry not found.");
+			return false;
+		}
+		const now = Date.now();
+		if (tokenExpiry <= now) {
+			console.debug("Token has expired and cannot be refreshed.");
+			return false; // Equal because it takes a tiny bit of time to send and process the request. Might not even be large enough a buffer.
+		}
+		if (now < tokenExpiry - 1123200000) {
+			console.debug("Token is not old enough to be refreshed.");
+			return true; // Only refresh if token it's more than a day old.
+		}
+
+		const response = await fetch(this.requestUrl("api/refreshtoken"), {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				client_id: encodeURIComponent(this.clientId),
+				token: encodeURIComponent(token),
+			})
+		})
+
+		const responseText = await response.text();
+		// Remove the ']' CSRF protection prefix
+		const jsonData = responseText.startsWith(']') ? responseText.slice(1) : responseText;
+		const data = JSON.parse(jsonData);
+
+		if (!data.success) {
+			throw new OfficialAuthError(`refreshToken`, response.status);
+		}
+
+		localStorage.setItem("ps-token", data.success);
+
+		console.assert(data.expires !== undefined, "No token expiry given.");
+		console.assert(typeof data.expires === "number", "Token expiry is not a number:" + data.expires);
+
+		localStorage.setItem("ps-token-expiry", data.expires);
+		console.debug("Token refreshed.");
+		return true;
+	}
+
+	/**
+	 * Requests authorization from the user by opening a popup to the documentation defined endpoint.
+	 * Will log in the user once it's done.
+	 * @param user The user to authorize.
+	 */
+	authorize(user: PSUser): void {
+		if (window.location.pathname?.startsWith("/auth/")) { return; } // Prevent recursively opening if already at this page.
+
+		const authorizeUrl = this.requestUrl("authorize");
+		authorizeUrl.searchParams.append('redirect_uri', `${this.redirectURI}/auth/`);
+		authorizeUrl.searchParams.append('client_id', encodeURIComponent(this.clientId));
+		authorizeUrl.searchParams.append('challenge', encodeURIComponent(user.challstr));
+
+		const popup = window.open(authorizeUrl, undefined, 'popup=1');
+		const checkIfUpdated = () => {
+			try {
+				if (popup?.location?.href?.startsWith(this.redirectURI)) {
+					console.debug("Processing.");
+					popup.close();
+
+					const url = new URL(popup.location.href);
+					console.debug("url:", url);
+					const token = url.searchParams.get('token');
+					console.debug('token', token);
+					if (!token || token === "null") {
+						console.error('Received no token');
+					} else {
+						localStorage.setItem('ps-token', decodeURIComponent(token as string));
+					}
+
+					let tokenExpiry = url.searchParams.get('expires');
+					console.debug('tokenExpiry', tokenExpiry);
+					if (!tokenExpiry) {
+						localStorage.setItem('ps-token-expiry', String(Date.now() + 1209600000)); // Now + 13 days (shaves off a bit yes, but that's fine imo)
+					} else {
+						// @ts-ignore if an expiry timestamp has been received, it's safe to assume it's a number. If not, make an issue here: https://github.com/smogon/pokemon-showdown-loginserver
+						localStorage.setItem('ps-token-expiry', decodeURIComponent(tokenExpiry  as string));
+					}
+
+
+					const assertion = url.searchParams.get('assertion');
+					console.debug('assertion', assertion);
+					if (!assertion) {
+						console.error('Received no assertion');
+					}
+					let userid = url.searchParams.get('user');
+					console.debug('userid', userid);
+					if (!userid || userid === "undefined") { // Note: If userid undefined logs in it's impossible lmao.
+						console.error('Received no userid');
+					}
+					userid = decodeURIComponent(userid as string);
+					localStorage.setItem('ps-token-userid', userid);
+
+					PS.leave('login' as RoomID); // Close login popup if it's open.
+					user.handleAssertion(userid, decodeURIComponent(assertion as string));
+				} else {
+					setTimeout(checkIfUpdated, 500);
+				}
+			} catch (DOMException) {
+				setTimeout(checkIfUpdated, 500);
+			}
+		};
+		checkIfUpdated();
+	}
+
+	/**
+	 * Returns an assertion for the given user if there's a valid token.
+	 * Otherwise returns an empty string.
+	 */
+	async getAssertion(user: PSUser): Promise<string | null> {
+		if (!await this.authorized()) {
+			return null;
+		}
+		const token = localStorage.getItem("ps-token");
+		console.assert(token !== null, "Token was null during getAssertion call.");
+		// Due to authorized call we can assume a valid token.
+
+		const response = await fetch(this.requestUrl("api/getassertion"), {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				client_id: encodeURIComponent(this.clientId),
+				challenge: encodeURIComponent(user.challstr),
+				token: encodeURIComponent(token as string), // Casting because token === null is excluded by Authorized.
+			})
+		})
+		console.debug("Returning response text.");
+		return await response.text(); // This is our assertion!
+	}
+
+	async revoke() {
+		this.clearTokenStorage();
+		// oauth/api/revoke: { success: boolean }
+		// We can ignore the token access check, because it should revoke all things for this client_id anyways.
+		const response = await fetch(this.requestUrl("api/revoke"), {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+			},
+			body: new URLSearchParams({
+				uri: encodeURIComponent(this.redirectURI)
+			})
+		})
+
+		const responseText = await response.text();
+		// Remove the ']' CSRF protection prefix
+		const jsonData = responseText.startsWith(']') ? responseText.slice(1) : responseText;
+		const data = JSON.parse(jsonData);
+		if (!data.success) {
+			throw new OfficialAuthError("revoke");
+		}
+	}
+
+	clearTokenStorage() {
+		console.debug("Cleared token storage");
+		localStorage.removeItem("ps-token");
+		localStorage.removeItem("ps-token-expiry");
+		localStorage.setItem("ps-token-userid", "");
+	}
+
+	hasItemsStored(): boolean {
+		const token = localStorage.getItem("ps-token");
+		const tokenExpiry = localStorage.getItem("ps-tokenExpiry");
+		const userid = localStorage.getItem("ps-token-userid");
+		return token !== null && userid !== "" && userid !== null;
+	}
+
+	/**
+	 * True if a valid token is in storage, false if the user must re-authorize due to lack of valid token credentials.
+	 */
+	async authorized(): Promise<boolean> {
+		const token = localStorage.getItem("ps-token");
+		const tokenExpiry_string = localStorage.getItem("ps-token-expiry");
+		let refresh = false;
+		let reauth = false;
+		if (!token) {
+			reauth = true;
+		} else if (!tokenExpiry_string || tokenExpiry_string === "") {
+			refresh = true;
+		}
+
+		if (!refresh) {
+			try {
+				const tokenExpiry = Number(tokenExpiry_string);
+				if (tokenExpiry <= Date.now()) {
+					refresh = true;
+				}
+			} catch (e) { reauth = true; } // If it fails, well be damned we should probably just try from scratch.
+		}
+
+		if (refresh && !reauth) { // Skip if reauth because it's already been determined to not be a good idea.
+			const success = await this.refreshToken();
+			if (!success) {
+				reauth = true;
+			}
+		}
+		return !reauth;
+	}
+}

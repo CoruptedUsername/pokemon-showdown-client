@@ -7,7 +7,7 @@
 
 import preact from "../js/lib/preact";
 import { PSLoginServer } from "./client-connection";
-import { Config, PS, PSRoom, type RoomID, type RoomOptions, type Team } from "./client-main";
+import { Config, PS, PSRoom, type RoomID, type RoomOptions, type Team, OfficialAuth } from "./client-main";
 import { PSIcon, PSPanelWrapper, PSRoomPanel } from "./panels";
 import type { BattlesRoom } from "./panel-battle";
 import type { ChatRoom } from "./panel-chat";
@@ -117,19 +117,17 @@ export class MainMenuRoom extends PSRoom {
 		case 'challstr': {
 			const [, challstr] = args;
 			PS.user.challstr = challstr;
-			PSLoginServer.query(
-				'upkeep', { challstr }
-			).then(res => {
-				if (!res?.username) {
-					PS.user.initializing = false;
-					return;
+			console.debug("Upkeep")
+			OfficialAuth.getAssertion(PS.user).then(ass => {
+				const userid = localStorage.getItem('ps-token-userid');
+				console.debug("Userid", userid)
+				if (ass === null || userid === null) {
+					console.debug(ass === null, userid === null, "assertion, userid, null. Authorize request.");
+					OfficialAuth.authorize(PS.user);
+				} else {
+					console.debug("Assertion obtained, handling.");
+					PS.user.handleAssertion(userid, ass);
 				}
-				// | , ; are not valid characters in names
-				res.username = res.username.replace(/[|,;]+/g, '');
-				if (res.loggedin) {
-					PS.user.registered = { name: res.username, userid: toID(res.username) };
-				}
-				PS.user.handleAssertion(res.username, res.assertion);
 			});
 			return;
 		} case 'updateuser': {

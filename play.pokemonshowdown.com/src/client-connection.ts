@@ -249,7 +249,7 @@ export class PSStorage {
 		if (document.location.hostname !== Config.routes.client) {
 			const iframe = document.createElement('iframe');
 			iframe.src = 'https://' + Config.routes.client + '/crossdomain.php?host=' +
-				encodeURIComponent(document.location.hostname) +
+				encodeURIComponent(document.location.hostname.replace(".", "-").replace(".", "-")) +
 				'&path=' + encodeURIComponent(document.location.pathname.substr(1)) +
 				'&protocol=' + encodeURIComponent(document.location.protocol);
 			iframe.style.display = 'none';
@@ -257,7 +257,7 @@ export class PSStorage {
 		} else {
 			Config.server ||= Config.defaultserver;
 			$(
-				`<iframe src="https://${Config.routes.client}/crossprotocol.html?v1.2" style="display: none;"></iframe>`
+				`<iframe src="https://${Config.routes.client}/crossprotocol.html?" style="display: none;"></iframe>`
 			).appendTo('body');
 			setTimeout(() => {
 				// HTTPS may be blocked
@@ -376,8 +376,17 @@ export class PSStorage {
 	}
 	static postCrossOriginMessage = function (data: string) {
 		try {
-			// I really hope this is a Chrome bug that this can fail
-			return PSStorage.frame!.postMessage(data, PSStorage.origin);
+			let targetOrigin = PSStorage.origin;
+
+			if (data.startsWith('S') || data.startsWith('R')) {
+				const requestData = JSON.parse(data.substr(1));
+				const url = requestData[0];
+				if (url && url.includes('/action.php') && url.includes('play.pokemonshowdown.com')) {
+					targetOrigin = 'https://play.pokemonshowdown.com';
+				}
+			}
+
+			return PSStorage.frame!.postMessage(data, targetOrigin);
 		} catch {
 		}
 		return false;
@@ -393,10 +402,8 @@ export const PSLoginServer = new class {
 		// 	alert("Sorry, login server queries don't work in the testclient. To log in, see README.md to set up testclient-key.js");
 		// 	return Promise.resolve(null);
 		// }
-		data.act = act;
-		let url = '/~~' + PS.server.id + '/action.php';
+		let url = 'https://play.pokemonshowdown.com/api/' + act;
 		if (location.pathname.endsWith('.html')) {
-			url = 'https://' + Config.routes.client + url;
 			if (typeof POKEMON_SHOWDOWN_TESTCLIENT_KEY === 'string') {
 				data.sid = POKEMON_SHOWDOWN_TESTCLIENT_KEY.replace(/%2C/g, ',');
 			}

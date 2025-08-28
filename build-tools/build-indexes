@@ -258,7 +258,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	const STADIUM = [2.04, 1.04];
 	const NATDEX = [9.1, 8.1];
 	const OTHER = [9.9, 9.6, 9.411, 9.41, 9.401, 9.4, 9.2, -9.4, -9.401, 8.6, 8.4, 8.2, 8.1, -8.4, -8.6, 7.1, 5.1, 3.1];
-	const MODS = [9.06];
+	const MODS = [9.06, -9.06];
 
 	// process.stdout.write("\n  ");
 	for (const genIdent of [/*...GENS, ...DOUBLES, ...VGC, ...NFE, ...STADIUM, ...OTHER, ...NATDEX, ...LC, */...MODS]) {
@@ -311,13 +311,19 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			const baseSpecies = Dex.mod(gen).species.get(species.baseSpecies);
 			if (species.gen > genNum) continue;
 			const speciesTier = (() => {
-				if (isDNU)  {
+				if (isDNU && !isDoubles)  {
 					if (species.tier === 'DoNU AG' || species.tier === 'DoNU Uber' || species.tier === 'DoNU OU' ||
 						species.tier === 'DoNU UUBL' || species.tier === 'DoNU UU' || species.tier === 'DoNU RUBL' ||
 						species.tier === 'DoNU RU') {
-						return species.tier
+						return species.tier;
 					}
-					return 'Illegal'
+					return 'Illegal';
+				}
+				if (isDNU && isDoubles) {
+					if (species.doublesTier === 'DoNU Restricted' || species.doublesTier === 'DoNU Unrestricted') {
+						return species.doublesTier;
+					}
+					return 'Illegal';
 				}
 				if (isDoubles && genNum > 4) {
 					return species.doublesTier;
@@ -394,13 +400,21 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			BattleTeambuilderTable[gen + 'vgc'] = {};
 			BattleTeambuilderTable[gen + 'vgc'].tiers = tiers;
 			BattleTeambuilderTable[gen + 'vgc'].formatSlices = formatSlices;
-		} else if (isDNU) {
+		} else if (isDNU && !isDoubles) {
 			BattleTeambuilderTable['gen9dnu'] = {};
 			BattleTeambuilderTable['gen9dnu'].learnsets = {};
 			BattleTeambuilderTable['gen9dnu'].tiers = tiers;
 			BattleTeambuilderTable['gen9dnu'].items = items;
 			BattleTeambuilderTable['gen9dnu'].overrideTier = overrideTier;
 			BattleTeambuilderTable['gen9dnu'].formatSlices = formatSlices;
+		} else if (isDNU && isDoubles) {
+			console.log('dnuvgc stuff');
+			BattleTeambuilderTable['gen9dnuvgc'] = {};
+			BattleTeambuilderTable['gen9dnuvgc'].learnsets = {};
+			BattleTeambuilderTable['gen9dnuvgc'].tiers = tiers;
+			BattleTeambuilderTable['gen9dnuvgc'].items = items;
+			BattleTeambuilderTable['gen9dnuvgc'].overrideTier = overrideTier;
+			BattleTeambuilderTable['gen9dnuvgc'].formatSlices = formatSlices;
 		} else if (isDoubles) {
 			BattleTeambuilderTable[gen + 'doubles'] = {};
 			BattleTeambuilderTable[gen + 'doubles'].tiers = tiers;
@@ -460,8 +474,11 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			if (isRS) {
 				return ["Regular", "NFE", "LC", "Uber"];
 			}
-			if (isDNU) {
+			if (isDNU && !isDoubles) {
 				return ["DoNU AG", "DoNU Uber", "DoNU OU", "DoNU UUBL", "DoNU UU", "DoNU RUBL", "DoNU RU"];
+			}
+			if (isDNU && isDoubles) {
+				return ['DoNU Restricted', 'DoNU Unrestricted'];
 			}
 			if (isDoubles && genNum > 4) {
 				return ["DUber", "(DUber)", "DOU", "DBL", "(DOU)", "DUU", "(DUU)", "New", "NFE", "LC"];
@@ -478,7 +495,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			if (tier in {
 				OU: 1, UUBL: 1, AG: 1, Uber: 1, UU: 1, RU: 1, NU: 1, PU: 1, ZU: 1, NFE: 1, LC: 1, DOU: 1, DUU: 1,
 				"(DUU)": 1, New: 1, Legal: 1, Regular: 1, "Restricted Legendary": 1, "CAP LC": 1, "DoNU AG": 1,
-				"DoNU Uber": 1, "DoNU OU": 1, "DoNU UU": 1, "DoNU RU": 1,
+				"DoNU Uber": 1, "DoNU OU": 1, "DoNU UU": 1, "DoNU RU": 1, "DoNU Restricted": 1, "DoNU Unrestricted": 1,
 			}) {
 				let usedTier = tier;
 				if (usedTier === "(DUU)") usedTier = "DNU";
@@ -877,7 +894,6 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			}
 		}
 	}
-	console.log(BattleTeambuilderTable['gen9dnu'].learnsets);
 
 	// Client relevant data that should be overriden by past gens and mods
 	const overrideSpeciesKeys = [

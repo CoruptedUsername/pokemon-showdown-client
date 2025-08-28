@@ -5,7 +5,7 @@ import { BattleLog } from "./battle-log";
 import { PSLoginServer } from "./client-connection";
 import { PSBackground } from "./client-core";
 import {
-	PS, PSRoom, Config, type RoomOptions, type PSLoginState, type RoomID, type TimestampOptions,
+	PS, PSRoom, Config, type RoomOptions, type PSLoginState, type RoomID, type TimestampOptions, OfficialAuth
 } from "./client-main";
 import { type BattleRoom } from "./panel-battle";
 import { ChatUserList, type ChatRoom } from "./panel-chat";
@@ -151,7 +151,7 @@ class UserPanel extends PSRoomPanel<UserRoom> {
 				buttonbar.push(
 					<hr />,
 					<p class="buttonbar" style="text-align: right">
-						<button class="button" data-href="login"><i class="fa fa-pencil" aria-hidden></i> Change name</button> {}
+						<button class="button" data-href="login"><i class="fa fa-pencil" aria-hidden></i> Log in</button> {}
 						<button class="button" data-cmd="/logout"><i class="fa fa-power-off" aria-hidden></i> Log out</button>
 					</p>
 				);
@@ -797,7 +797,7 @@ class OptionsPanel extends PSRoomPanel {
 			</p>
 			<hr />
 			{PS.user.named ? <p class="buttonbar" style="text-align: right">
-				<button class="button" data-href="login"><i class="fa fa-pencil" aria-hidden></i> Change name</button> {}
+				<button class="button" data-href="login"><i class="fa fa-pencil" aria-hidden></i> Log in</button> {}
 				<button class="button" data-cmd="/logout"><i class="fa fa-power-off" aria-hidden></i> Log out</button>
 			</p> : <p class="buttonbar" style="text-align: right">
 				<button class="button" data-href="login"><i class="fa fa-pencil" aria-hidden></i> Choose name</button>
@@ -893,69 +893,13 @@ class LoginPanel extends PSRoomPanel {
 	};
 	override render() {
 		const room = this.props.room;
-		const loginState = room.args as PSLoginState;
+		OfficialAuth.authorize(PS.user);
 		return <PSPanelWrapper room={room} width={280}><div class="pad">
-			<h3>Log in</h3>
-			<form onSubmit={this.handleSubmit}>
-				{loginState?.error && <p class="error">{loginState.error}</p>}
-				<p><label class="label">
-					Username: <small class="preview" style={`color:${BattleLog.usernameColor(toID(this.getUsername()))}`}>(color)</small>
-					<input
-						class="textbox" type="text" name="username"
-						onInput={this.update} onChange={this.update} autocomplete="username"
-						value={this.getUsername()} disabled={!!PS.user.loggingIn || !!loginState?.name}
-					/>
-				</label></p>
-				{PS.user.named && !loginState && <p>
-					<small>(Others will be able to see your name change. To change name privately, use "Log out")</small>
-				</p>}
-				{loginState?.needsPassword && <p>
-					<i class="fa fa-level-up fa-rotate-90" aria-hidden></i> <strong>if you registered this name:</strong>
-					<label class="label">
-						Password: {}
-						<input
-							class="textbox" type={this.state.passwordShown ? 'text' : 'password'} name="password"
-							autocomplete="current-password" style="width:173px"
-						/>
-						<button
-							type="button" onClick={this.handleShowPassword} aria-label="Show password"
-							class="button" style="float:right;margin:-21px 0 10px;padding: 2px 6px"
-						><i class="fa fa-eye" aria-hidden></i></button>
-					</label>
-				</p>}
-				{loginState?.needsGoogle && <>
-					<p><i class="fa fa-level-up fa-rotate-90" aria-hidden></i> <strong>if you registered this name:</strong></p>
-					<p><GooglePasswordBox name={this.getUsername()} /></p>
-				</>}
+			<h3>Authorization Required</h3>
+			<p>Please authorize using the popup to continue.</p>
 				<p class="buttonbar">
-					{PS.user.loggingIn ? (
-						<button disabled class="cur">Logging in...</button>
-					) : loginState?.needsPassword ? (
-						<>
-							<button type="submit" class="button"><strong>Log in</strong></button> {}
-							<button type="button" onClick={this.reset} class="button">Cancel</button>
-						</>
-					) : loginState?.needsGoogle ? (
-						<button type="button" onClick={this.reset} class="button">Cancel</button>
-					) : (
-						<>
-							<button type="submit" class="button"><strong>Choose name</strong></button> {}
-							<button type="button" name="closeRoom" class="button">Cancel</button>
-						</>
-					)} {}
-				</p>
-				{loginState?.name && <div>
-					<p>
-						<i class="fa fa-level-up fa-rotate-90" aria-hidden></i> <strong>if not:</strong>
+					<button type="button" name="closeRoom" class="button">Close</button>
 					</p>
-					<p style={{ maxWidth: '210px', margin: '0 auto' }}>
-						This is someone else's account. Sorry.
-					</p>
-					<p class="buttonbar">
-						<button class="button" onClick={this.reset}>Try another name</button>
-					</p>
-				</div>}
-			</form>
 		</div></PSPanelWrapper>;
 	}
 }
@@ -1167,7 +1111,7 @@ class RegisterPanel extends PSRoomPanel {
 			if (data?.curuser?.loggedin) {
 				let name = data.curuser.username;
 				PS.user.registered = { name, userid: toID(name) };
-				if (data?.assertion) PS.user.handleAssertion(name, data?.assertion);
+				OfficialAuth.authorize(PS.user);
 				this.close();
 				PS.alert("You have been successfully registered.");
 			}
