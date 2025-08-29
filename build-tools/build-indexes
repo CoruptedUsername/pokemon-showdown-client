@@ -852,52 +852,6 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		const learnset = DoNULearnsets[id].learnset;
 		if (!learnset) continue;
 		BattleTeambuilderTable['gen9dnu'].learnsets[id] = {};
-		for (const moveid in learnset) {
-			const gens = learnset[moveid].map(x => Number(x[0]));
-			const minGen = Math.min(...gens);
-
-			if (minGen <= 4 && (gen3HMs.has(moveid) || gen4HMs.has(moveid))) {
-				let legalGens = '';
-				let available = false;
-
-				if (minGen === 3) {
-					legalGens += '3';
-					available = true;
-				}
-				if (available) available = !gen3HMs.has(moveid);
-
-				if (available || gens.includes(4)) {
-					legalGens += '4';
-					available = true;
-				}
-				if (available) available = !gen4HMs.has(moveid);
-
-				const minUpperGen = available ? 5 : Math.min(
-					...gens.filter(gen => gen > 4)
-				);
-				legalGens += '0123456789'.slice(minUpperGen);
-				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] = legalGens;
-			} else {
-				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] = '0123456789'.slice(minGen);
-			}
-
-			if (gens.indexOf(6) >= 0) BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'p';
-			if (gens.indexOf(7) >= 0 && learnset[moveid].some(x => x[0] === '7' && x !== '7V')) {
-				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'q';
-			}
-			if (gens.indexOf(8) >= 0 && learnset[moveid].some(x => x[0] === '8' && x !== '8V')) {
-				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'g';
-			}
-			if (gens.indexOf(9) >= 0 && learnset[moveid].some(x => x[0] === '9' && x !== '9V')) {
-				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'a';
-			}
-		}
-	}
-
-	const DoNUVGCLearnsets = Dex.mod('gen9dnuvgc').data.Learnsets;
-	for (const id in DoNUVGCLearnsets) {
-		const learnset = DoNUVGCLearnsets[id].learnset;
-		if (!learnset) continue;
 		BattleTeambuilderTable['gen9dnuvgc'].learnsets[id] = {};
 		for (const moveid in learnset) {
 			const gens = learnset[moveid].map(x => Number(x[0]));
@@ -923,23 +877,32 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 					...gens.filter(gen => gen > 4)
 				);
 				legalGens += '0123456789'.slice(minUpperGen);
+				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] = legalGens;
 				BattleTeambuilderTable['gen9dnuvgc'].learnsets[id][moveid] = legalGens;
 			} else {
+				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] = '0123456789'.slice(minGen);
 				BattleTeambuilderTable['gen9dnuvgc'].learnsets[id][moveid] = '0123456789'.slice(minGen);
 			}
 
-			if (gens.indexOf(6) >= 0) BattleTeambuilderTable['gen9dnuvgc'].learnsets[id][moveid] += 'p';
+			if (gens.indexOf(6) >= 0) {
+				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'p';
+				BattleTeambuilderTable['gen9dnuvgc'].learnsets[id][moveid] += 'p';
+			}
 			if (gens.indexOf(7) >= 0 && learnset[moveid].some(x => x[0] === '7' && x !== '7V')) {
+				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'q';
 				BattleTeambuilderTable['gen9dnuvgc'].learnsets[id][moveid] += 'q';
 			}
 			if (gens.indexOf(8) >= 0 && learnset[moveid].some(x => x[0] === '8' && x !== '8V')) {
+				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'g';
 				BattleTeambuilderTable['gen9dnuvgc'].learnsets[id][moveid] += 'g';
 			}
 			if (gens.indexOf(9) >= 0 && learnset[moveid].some(x => x[0] === '9' && x !== '9V')) {
+				BattleTeambuilderTable['gen9dnu'].learnsets[id][moveid] += 'a';
 				BattleTeambuilderTable['gen9dnuvgc'].learnsets[id][moveid] += 'a';
 			}
 		}
 	}
+
 
 	// Client relevant data that should be overriden by past gens and mods
 	const overrideSpeciesKeys = [
