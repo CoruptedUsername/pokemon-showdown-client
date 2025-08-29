@@ -408,7 +408,6 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			BattleTeambuilderTable['gen9dnu'].overrideTier = overrideTier;
 			BattleTeambuilderTable['gen9dnu'].formatSlices = formatSlices;
 		} else if (isDNU && isDoubles) {
-			console.log('dnuvgc stuff');
 			BattleTeambuilderTable['gen9dnuvgc'] = {};
 			BattleTeambuilderTable['gen9dnuvgc'].learnsets = {};
 			BattleTeambuilderTable['gen9dnuvgc'].tiers = tiers;

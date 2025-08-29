@@ -817,7 +817,6 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		if (this.formatType === 'bw1') table = table['gen5bw1'];
 		if (this.formatType === 'rs') table = table['gen3rs'];
 		if (speciesid in table.learnsets) return speciesid;
-		console.log(table)
 		const species = this.dex.species.get(speciesid);
 		if (!species.exists) return '' as ID;
 		let baseLearnsetid = toID(species.baseSpecies);
@@ -1762,7 +1761,7 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 		let gen = `${dex.gen}`;
 		let lsetTable = BattleTeambuilderTable;
 		if (this.formatType === 'donotuse') lsetTable = lsetTable['gen9dnu'];
-		if (this.formatType === 'donotuse') lsetTable = lsetTable['gen9dnuvgc'];
+		if (this.formatType === 'donotusevgc') lsetTable = lsetTable['gen9dnuvgc'];
 		if (this.formatType?.startsWith('bdsp')) lsetTable = lsetTable['gen8bdsp'];
 		if (this.formatType === 'letsgo') lsetTable = lsetTable['gen7letsgo'];
 		if (this.formatType === 'bw1') lsetTable = lsetTable['gen5bw1'];
