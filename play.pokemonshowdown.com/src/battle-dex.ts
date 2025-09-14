@@ -280,8 +280,11 @@ export const Dex = new class implements ModdedDex {
 		if (dex.gen === 8 && formatid.includes('bdsp')) {
 			dex = Dex.mod('gen8bdsp' as ID);
 		}
-		if (dex.gen === 9 && formatid.includes('donotuse')) {
+		if (dex.gen === 9 && formatid.includes('donotuse') && !formatid.includes('legacy')) {
 			dex = Dex.mod('gen9dnu' as ID);
+		}
+		if (dex.gen === 9 && formatid.includes('donotuse') && formatid.includes('legacy')) {
+			dex = Dex.mod('gen9dnulegacy' as ID);
 		}
 		return dex;
 	}
