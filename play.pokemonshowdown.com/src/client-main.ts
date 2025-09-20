@@ -2911,7 +2911,8 @@ export const OfficialAuth = new class {
 
 		const responseText = await response.text();
 		// Remove the ']' CSRF protection prefix
-		// const jsonData = responseText.startsWith(']') ? responseText.slice(1) : responseText;
+		const jsonData = responseText.startsWith(']') ? responseText.slice(1) : responseText;
+		console.log(jsonData)
 		// const data = JSON.parse(jsonData);
 		// if (!data.success) {
 		// 	throw new OfficialAuthError("revoke");
