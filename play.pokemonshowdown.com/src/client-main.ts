@@ -2911,11 +2911,11 @@ export const OfficialAuth = new class {
 
 		const responseText = await response.text();
 		// Remove the ']' CSRF protection prefix
-		const jsonData = responseText.startsWith(']') ? responseText.slice(1) : responseText;
-		const data = JSON.parse(jsonData);
-		if (!data.success) {
-			throw new OfficialAuthError("revoke");
-		}
+		// const jsonData = responseText.startsWith(']') ? responseText.slice(1) : responseText;
+		// const data = JSON.parse(jsonData);
+		// if (!data.success) {
+		// 	throw new OfficialAuthError("revoke");
+		// }
 	}
 
 	clearTokenStorage() {
