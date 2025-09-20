@@ -718,7 +718,7 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 	}
 	logOut() {
 		OfficialAuth.revoke().then(() => {
-			PS.send(`/logout`);
+			// PS.send(`/logout`);
 			PS.alert("You have been logged out.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
 			this.name = "";
 			this.group = '';
