@@ -717,7 +717,7 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 		}
 	}
 	logOut() {
-		console.log(typeof OfficialAuth.revoke());
+		console.log(OfficialAuth.revoke());
 		//let revocationSuccess: Promise<Any> = OfficialAuth.revoke();
 		// OfficialAuth.revoke().then(
 		// 	() => {
