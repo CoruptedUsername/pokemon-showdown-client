@@ -2916,7 +2916,6 @@ export const OfficialAuth = new class {
 		if (!data.success) {
 			throw new OfficialAuthError("revoke");
 		}
-		return data.success
 	}
 
 	clearTokenStorage() {
