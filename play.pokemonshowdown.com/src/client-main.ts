@@ -2893,6 +2893,7 @@ export const OfficialAuth = new class {
 		// We can ignore the token access check, because it should revoke all things for this client_id anyways.
 		const response = await fetch(this.requestUrl("api/revoke"), {
 			method: "POST",
+			mode: 'no-cors',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},
