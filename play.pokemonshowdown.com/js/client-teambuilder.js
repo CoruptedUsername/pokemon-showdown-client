@@ -31,7 +31,15 @@
 					this.curTeam.dex = Dex.mod('gen8bdsp');
 				}
 				if (this.curTeam.format.includes('donotuse')) {
-					this.curTeam.dex = Dex.mod('gen9dnu');
+					if (this.curTeam.format.includes('legacy')) {
+						this.curTeam.dex = Dex.mod('gen9dnulegacy');
+					}
+					else {
+						this.curTeam.dex = Dex.mod('gen9dnu');
+					}
+				}
+				if (this.curTeam.format.includes('regionalvariantscup')) {
+					this.curTeam.dex = Dex.mod('gen9rvc');
 				}
 				Storage.activeSetList = this.curSetList;
 			}
@@ -759,7 +767,15 @@
 				this.curTeam.dex = Dex.mod('gen8bdsp');
 			}
 			if (this.curTeam.format.includes('donotuse')) {
-				this.curTeam.dex = Dex.mod('gen9dnu');
+				if (this.curTeam.format.includes('legacy')) {
+					this.curTeam.dex = Dex.mod('gen9dnulegacy');
+				}
+				else {
+					this.curTeam.dex = Dex.mod('gen9dnu');
+				}
+			}
+			if (this.curTeam.format.includes('regionalvariantscup')) {
+				this.curTeam.dex = Dex.mod('gen9rvc');
 			}
 			Storage.activeSetList = this.curSetList = Storage.unpackTeam(this.curTeam.team);
 			this.curTeamIndex = i;
@@ -1288,7 +1304,6 @@
 			var species = this.curTeam.dex.species.get(set.species);
 			var isLetsGo = this.curTeam.format.includes('letsgo');
 			var isBDSP = this.curTeam.format.includes('bdsp');
-			var isDoNotUse = this.curTeam.format.includes('donotuse');
 			var isNatDex = this.curTeam.format.includes('nationaldex') || this.curTeam.format.includes('natdex');
 			var buf = '<li value="' + i + '">';
 			if (!set.species) {
@@ -1616,7 +1631,15 @@
 				this.curTeam.dex = Dex.mod('gen8bdsp');
 			}
 			if (this.curTeam.format.includes('donotuse')) {
-				this.curTeam.dex = Dex.mod('gen9dnu');
+				if (this.curTeam.format.includes('legacy')) {
+					this.curTeam.dex = Dex.mod('gen9dnulegacy');
+				}
+				else {
+					this.curTeam.dex = Dex.mod('gen9dnu');
+				}
+			}
+			if (this.curTeam.format.includes('regionalvariantscup')) {
+				this.curTeam.dex = Dex.mod('gen9rvc');
 			}
 			this.save();
 			if (this.curTeam.gen === 5 && !Dex.loadedSpriteData['bw']) Dex.loadSpriteData('bw');

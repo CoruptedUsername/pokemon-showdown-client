@@ -572,7 +572,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 	 */
 	set: Dex.PokemonSet | null = null;
 
-	protected formatType: 'doubles' | 'donotuse' | 'donotusevgc' | 'donotuselegacy' | 'bdsp' | 'bdspdoubles' | 'rs' | 'bw1' | 'letsgo' | 'metronome' | 'natdex' | 'nfe' |
+	protected formatType: 'doubles' | 'donotuse' | 'donotusevgc' | 'donotuselegacy' | 'regionalvariantscup' | 'bdsp' | 'bdspdoubles' | 'rs' | 'bw1' | 'letsgo' | 'metronome' | 'natdex' | 'nfe' |
 		'ssdlc1' | 'ssdlc1doubles' | 'predlc' | 'predlcdoubles' | 'predlcnatdex' | 'svdlc1' | 'svdlc1doubles' |
 		'svdlc1natdex' | 'stadium' | 'lc' | null = null;
 	isDoubles = false;
@@ -678,6 +678,10 @@ abstract class BattleTypedSearch<T extends SearchType> {
 				this.formatType = 'donotuse';
 			}
 			this.dex = Dex.mod('gen9dnu' as ID);
+		}
+		if (format.includes('regionalvariantscup')) {
+			this.formatType = 'regionalvariantscup';
+			this.dex = Dex.mod('gen9rvc' as ID);
 		}
 		if (format.includes('bw1')) {
 			this.formatType = 'bw1';
@@ -815,6 +819,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		if (this.formatType === 'donotuse') table = table['gen9dnu'];
 		if (this.formatType === 'donotusevgc') table = table['gen9dnuvgc'];
 		if (this.formatType === 'donotuselegacy') table = table['gen9dnulegacy'];
+		if (this.formatType === 'regionalvariantscup') table = table['gen9rvc'];
 		if (this.formatType?.startsWith('bdsp')) table = table['gen8bdsp'];
 		if (this.formatType === 'letsgo') table = table['gen7letsgo'];
 		if (this.formatType === 'bw1') table = table['gen5bw1'];
@@ -886,6 +891,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 			if (this.formatType === 'donotuse') table = table['gen9dnu'];
 			if (this.formatType === 'donotusevgc') table = table['gen9dnuvgc'];
 			if (this.formatType === 'donotuselegacy') table = table['gen9dnulegacy'];
+			if (this.formatType === 'regionalvariantscup') table = table['gen9rvc'];
 			if (this.formatType?.startsWith('bdsp')) table = table['gen8bdsp'];
 			if (this.formatType === 'letsgo') table = table['gen7letsgo'];
 			if (this.formatType === 'bw1') table = table['gen5bw1'];
@@ -912,6 +918,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 			this.formatType === 'donotuse' ? 'gen9dnu' :
 				this.formatType === 'donotusevgc' ? 'gen9dnuvgc' :
 					this.formatType === 'donotuselegacy' ? 'gen9dnulegacy' :
+						this.formatType === 'regionalvariantscup' ? 'gen9rvc' :
 						this.formatType === 'letsgo' ? 'gen7letsgo' :
 							this.formatType === 'bdsp' ? 'gen8bdsp' :
 								this.formatType === 'bdspdoubles' ? 'gen8bdspdoubles' :
@@ -1056,6 +1063,8 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 			table = table['gen8' + this.formatType];
 		} else if (this.formatType === 'letsgo') {
 			table = table['gen7letsgo'];
+		} else if (this.formatType === 'regionalvariantscup') {
+			table = table['gen9rvc'];
 		} else if (this.formatType === 'bw1') {
 			table = table['gen5bw1'];
 		} else if (this.formatType === 'rs') {
@@ -1378,8 +1387,10 @@ class BattleItemSearch extends BattleTypedSearch<'item'> {
 			table = table['gen9dnu'];
 		} else if (this.formatType === 'donotusevgc') {
 			table = table['gen9dnuvgc'];
-		}  else if (this.formatType === 'donotuselegacy') {
+		} else if (this.formatType === 'donotuselegacy') {
 			table = table['gen9dnulegacy'];
+		} else if (this.formatType === 'regionalvariantscup') {
+			table = table['gen9rvc'];
 		} else if (this.formatType?.startsWith('bdsp')) {
 			table = table['gen8bdsp'];
 		} else if (this.formatType === 'bw1') {
@@ -1763,7 +1774,8 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 		const regionBornLegality = dex.gen >= 6 &&
 			(/^battle(spot|stadium|festival)/.test(format) || format.startsWith('bss') ||
 				format.startsWith('vgc') || (dex.gen === 9 && this.formatType !== 'natdex' && this.formatType !==
-					'donotuse' && this.formatType !== 'donotusevgc' && this.formatType !== 'donotuselegacy'));
+					'donotuse' && this.formatType !== 'donotusevgc' && this.formatType !== 'donotuselegacy' &&
+					this.formatType !== 'regionalvariantscup'));
 
 		let learnsetid = this.firstLearnsetid(species.id);
 		let moves: string[] = [];
@@ -1774,6 +1786,7 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 		if (this.formatType === 'donotuse') lsetTable = lsetTable['gen9dnu'];
 		if (this.formatType === 'donotusevgc') lsetTable = lsetTable['gen9dnuvgc'];
 		if (this.formatType === 'donotuselegacy') lsetTable = lsetTable['gen9dnulegacy'];
+		if (this.formatType === 'regionalvariantscup') lsetTable = lsetTable['gen9rvc'];
 		if (this.formatType?.startsWith('bdsp')) lsetTable = lsetTable['gen8bdsp'];
 		if (this.formatType === 'letsgo') lsetTable = lsetTable['gen7letsgo'];
 		if (this.formatType === 'bw1') lsetTable = lsetTable['gen5bw1'];
@@ -1804,7 +1817,8 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 						continue;
 					}
 					if (this.formatType !== 'natdex' && this.formatType !== 'donotuse' && this.formatType !== 'donotusevgc'
-						&& this.formatType !== 'donotuselegacy' && move.isNonstandard === "Past") {
+						&& this.formatType !== 'donotuselegacy' && this.formatType !== 'regionalvariantscup'
+						&& move.isNonstandard === "Past") {
 						continue;
 					}
 					if (

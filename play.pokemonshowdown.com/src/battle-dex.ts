@@ -286,6 +286,9 @@ export const Dex = new class implements ModdedDex {
 		if (dex.gen === 9 && formatid.includes('donotuse') && formatid.includes('legacy')) {
 			dex = Dex.mod('gen9dnulegacy' as ID);
 		}
+		if (dex.gen === 9 && formatid.includes('regionalvariantscup')) {
+			dex = Dex.mod('gen9rvc' as ID);
+		}
 		return dex;
 	}
 

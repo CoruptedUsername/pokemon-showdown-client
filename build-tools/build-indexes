@@ -258,7 +258,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	const STADIUM = [2.04, 1.04];
 	const NATDEX = [9.1, 8.1];
 	const OTHER = [9.9, 9.6, 9.411, 9.41, 9.401, 9.4, 9.2, -9.4, -9.401, 8.6, 8.4, 8.2, 8.1, -8.4, -8.6, 7.1, 5.1, 3.1];
-	const MODS = [9.06, -9.06, 9.065];
+	const MODS = [9.06, -9.06, 9.065, 9.05];
 
 	// process.stdout.write("\n  ");
 	for (const genIdent of [/*...GENS, ...DOUBLES, ...VGC, ...NFE, ...STADIUM, ...OTHER, ...NATDEX, ...LC, */...MODS]) {
@@ -276,6 +276,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		const isVGC = ('' + genIdent).endsWith('.5');
 		const isDNU = ('' + genIdent).endsWith('.06');
 		const isDNULegacy = ('' + genIdent).endsWith('.065');
+		const isRVC = ('' + genIdent).endsWith('.05');
 		const isGen9BH = genIdent === 9.9;
 		const isSSB = genIdent === 9.6;
 		const genNum = Math.floor(isDoubles ? -genIdent : genIdent);
@@ -288,6 +289,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			if (isBDSP) genStr += 'bdsp';
 			if (isDNU) genStr += 'dnu';
 			if (isDNULegacy) genStr += 'dnulegacy';
+			if (isRVC) genStr += 'rvc';
 			if (isPreDLC) genStr += 'predlc';
 			if (isSVDLC1) genStr += 'dlc1';
 			if (isStadium) genStr += 'stadium' + (genNum > 1 ? genNum : '');
@@ -423,6 +425,13 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			BattleTeambuilderTable['gen9dnulegacy'].items = items;
 			BattleTeambuilderTable['gen9dnulegacy'].overrideTier = overrideTier;
 			BattleTeambuilderTable['gen9dnulegacy'].formatSlices = formatSlices;
+		} else if (isRVC) {
+			BattleTeambuilderTable['gen9rvc'] = {};
+			BattleTeambuilderTable['gen9rvc'].learnsets = {};
+			BattleTeambuilderTable['gen9rvc'].tiers = tiers;
+			BattleTeambuilderTable['gen9rvc'].items = items;
+			BattleTeambuilderTable['gen9rvc'].overrideTier = overrideTier;
+			BattleTeambuilderTable['gen9rvc'].formatSlices = formatSlices;
 		} else if (isDoubles) {
 			BattleTeambuilderTable[gen + 'doubles'] = {};
 			BattleTeambuilderTable[gen + 'doubles'].tiers = tiers;
@@ -487,6 +496,9 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			}
 			if (isDNU && isDoubles) {
 				return ['DoNU Restricted', 'DoNU Unrestricted'];
+			}
+			if (isRVC) {
+				return ['RVC', 'RVC NFE', 'RVC LC'];
 			}
 			if (isDoubles && genNum > 4) {
 				return ["DUber", "(DUber)", "DOU", "DBL", "(DOU)", "DUU", "(DUU)", "New", "NFE", "LC"];
@@ -961,6 +973,54 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		}
 	}
 
+	const RVCLearnsets = Dex.mod('gen9rvc').data.Learnsets;
+	for (const id in RVCLearnsets) {
+		const learnset = RVCLearnsets[id].learnset;
+		if (!learnset) continue;
+		BattleTeambuilderTable['gen9rvc'].learnsets[id] = {};
+		for (const moveid in learnset) {
+			const gens = learnset[moveid].map(x => Number(x[0]));
+			const minGen = Math.min(...gens);
+
+			if (minGen <= 4 && (gen3HMs.has(moveid) || gen4HMs.has(moveid))) {
+				let legalGens = '';
+				let available = false;
+
+				if (minGen === 3) {
+					legalGens += '3';
+					available = true;
+				}
+				if (available) available = !gen3HMs.has(moveid);
+
+				if (available || gens.includes(4)) {
+					legalGens += '4';
+					available = true;
+				}
+				if (available) available = !gen4HMs.has(moveid);
+
+				const minUpperGen = available ? 5 : Math.min(
+					...gens.filter(gen => gen > 4)
+				);
+				legalGens += '0123456789'.slice(minUpperGen);
+				BattleTeambuilderTable['gen9rvc'].learnsets[id][moveid] = legalGens;
+			} else {
+				BattleTeambuilderTable['gen9rvc'].learnsets[id][moveid] = '0123456789'.slice(minGen);
+			}
+
+			if (gens.indexOf(6) >= 0) {
+				BattleTeambuilderTable['gen9rvc'].learnsets[id][moveid] += 'p';
+			}
+			if (gens.indexOf(7) >= 0 && learnset[moveid].some(x => x[0] === '7' && x !== '7V')) {
+				BattleTeambuilderTable['gen9rvc'].learnsets[id][moveid] += 'q';
+			}
+			if (gens.indexOf(8) >= 0 && learnset[moveid].some(x => x[0] === '8' && x !== '8V')) {
+				BattleTeambuilderTable['gen9rvc'].learnsets[id][moveid] += 'g';
+			}
+			if (gens.indexOf(9) >= 0 && learnset[moveid].some(x => x[0] === '9' && x !== '9V')) {
+				BattleTeambuilderTable['gen9rvc'].learnsets[id][moveid] += 'a';
+			}
+		}
+	}
 
 	// Client relevant data that should be overriden by past gens and mods
 	const overrideSpeciesKeys = [
@@ -976,7 +1036,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	// Mods
 	//
 
-	for (const mod of ['gen9dnu', 'gen9dnulegacy']) {
+	for (const mod of ['gen9dnu', 'gen9dnulegacy', 'gen9rvc']) {
 		const modDex = Dex.mod(mod);
 		const modData = modDex.data;
 		const parentDex = Dex.forGen(modDex.gen);
