@@ -41,6 +41,9 @@
 				if (this.curTeam.format.includes('regionalvariantscup')) {
 					this.curTeam.dex = Dex.mod('gen9rvc');
 				}
+				if (this.curTeam.format.includes('natalieused')) {
+					this.curTeam.dex = Dex.mod('gen9natu');
+				}
 				Storage.activeSetList = this.curSetList;
 			}
 		},
@@ -776,6 +779,9 @@
 			}
 			if (this.curTeam.format.includes('regionalvariantscup')) {
 				this.curTeam.dex = Dex.mod('gen9rvc');
+			}
+			if (this.curTeam.format.includes('natalieused')) {
+				this.curTeam.dex = Dex.mod('gen9natu');
 			}
 			Storage.activeSetList = this.curSetList = Storage.unpackTeam(this.curTeam.team);
 			this.curTeamIndex = i;
@@ -1640,6 +1646,9 @@
 			}
 			if (this.curTeam.format.includes('regionalvariantscup')) {
 				this.curTeam.dex = Dex.mod('gen9rvc');
+			}
+			if (this.curTeam.format.includes('natalieused')) {
+				this.curTeam.dex = Dex.mod('gen9natu');
 			}
 			this.save();
 			if (this.curTeam.gen === 5 && !Dex.loadedSpriteData['bw']) Dex.loadSpriteData('bw');
