@@ -717,24 +717,22 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 		}
 	}
 	logOut() {
-		console.log(OfficialAuth.revoke());
-		//let revocationSuccess: Promise<Any> = OfficialAuth.revoke();
-		// OfficialAuth.revoke().then(
-		// 	() => {
-		// 		console.log('Finished revoke')
-		// 		// PS.send(`/logout`);
-		// 		PS.alert("You have been logged out.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
-		// 		this.name = "";
-		// 		this.group = '';
-		// 		this.userid = "" as ID;
-		// 		this.named = false;
-		// 		this.registered = null;
-		// 		this.update(null);
-		// 	},
-		// 	() => {
-		// 		PS.alert("Error logging out: Failed to revoke auth access.")
-		// 	}
-		// );
+		OfficialAuth.revoke().then(
+			() => {
+				console.log('Finished revoke')
+				// PS.send(`/logout`);
+				PS.alert("You have been logged out.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
+				this.name = "";
+				this.group = '';
+				this.userid = "" as ID;
+				this.named = false;
+				this.registered = null;
+				this.update(null);
+			},
+			() => {
+				PS.alert("Error logging out: Failed to revoke auth access.")
+			}
+		);
 	}
 
 	updateRegExp() {
@@ -2900,7 +2898,6 @@ export const OfficialAuth = new class {
 		// We can ignore the token access check, because it should revoke all things for this client_id anyways.
 		const response = await fetch(this.requestUrl("api/revoke"), {
 			method: "POST",
-			mode: 'no-cors',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
 			},
@@ -2912,11 +2909,10 @@ export const OfficialAuth = new class {
 		const responseText = await response.text();
 		// Remove the ']' CSRF protection prefix
 		const jsonData = responseText.startsWith(']') ? responseText.slice(1) : responseText;
-		console.log(jsonData)
-		// const data = JSON.parse(jsonData);
-		// if (!data.success) {
-		// 	throw new OfficialAuthError("revoke");
-		// }
+		const data = JSON.parse(jsonData);
+		if (!data.success) {
+			throw new OfficialAuthError("revoke");
+		}
 	}
 
 	clearTokenStorage() {
