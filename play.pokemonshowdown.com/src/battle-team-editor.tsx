@@ -66,6 +66,7 @@ class TeamEditorState extends PSModel {
 	isNatDex = false;
 	isBDSP = false;
 	isDNU = false;
+	isRVC = false;
 	formeLegality: 'normal' | 'hackmons' | 'custom' = 'normal';
 	abilityLegality: 'normal' | 'hackmons' = 'normal';
 	defaultLevel = 100;
@@ -99,6 +100,7 @@ class TeamEditorState extends PSModel {
 		this.isNatDex = formatid.includes('nationaldex') || formatid.includes('natdex');
 		this.isBDSP = formatid.includes('bdsp');
 		this.isDNU = formatid.includes('donotuse');
+		this.isRVC = formatid.includes('regionalvariantscup');
 		if (formatid.includes('almostanyability') || formatid.includes('aaa')) {
 			this.abilityLegality = 'hackmons';
 		} else {

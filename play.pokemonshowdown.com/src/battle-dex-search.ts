@@ -1149,6 +1149,7 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 		else if (format === 'donotuseru') tierSet = tierSet.slice(slices['DoNU RU']);
 		else if (format === 'donotuselegacy') tierSet = tierSet.slice(slices['DoNU OU']);
 		else if (format === 'donotuserulegacy') tierSet = tierSet.slice(slices['DoNU RU']);
+		else if (format === 'regionalvariantscup') tierSet = tierSet.slice(slices['RVC']);
 		else if (
 			format === 'lc' || format === 'lcuu' || format.startsWith('lc') || (format !== 'caplc' && format.endsWith('lc'))
 		) tierSet = tierSet.slice(slices.LC);
