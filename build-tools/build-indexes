@@ -567,7 +567,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 				continue;
 			}
 			if (item.isNonstandard && !isMetBattle) {
-				if (isNatDex || isDNU || isDNULegacy || isRVC || isNatU) {
+				if ((isNatDex || isDNU || isDNULegacy || isRVC || isNatU) && item.isNonstandard !== 'Illegal') {
 					let curItem = item;
 					let curGen = genNum;
 					while (curItem.isNonstandard && curGen >= 7) {
