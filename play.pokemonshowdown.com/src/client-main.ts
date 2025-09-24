@@ -740,6 +740,7 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 		this.named = false;
 		this.registered = null;
 		this.update(null);
+		OfficialAuth.clearTokenStorage()
 	}
 
 	updateRegExp() {
