@@ -717,22 +717,29 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 		}
 	}
 	logOut() {
-		OfficialAuth.revoke().then(
-			() => {
-				console.log('Finished revoke')
-				// PS.send(`/logout`);
-				PS.alert("You have been logged out.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
-				this.name = "";
-				this.group = '';
-				this.userid = "" as ID;
-				this.named = false;
-				this.registered = null;
-				this.update(null);
-			},
-			() => {
-				PS.alert("Error logging out: Failed to revoke auth access.")
-			}
-		);
+		// OfficialAuth.revoke().then(
+		// 	() => {
+		// 		console.log('Finished revoke')
+		// 		// PS.send(`/logout`);
+		// 		PS.alert("You have been logged out.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
+		// 		this.name = "";
+		// 		this.group = '';
+		// 		this.userid = "" as ID;
+		// 		this.named = false;
+		// 		this.registered = null;
+		// 		this.update(null);
+		// 	},
+		// 	() => {
+		// 		PS.alert("Error logging out: Failed to revoke auth access.")
+		// 	}
+		// );
+		window.open("https://play.pokemonshowdown.com/api/oauth/authorized", undefined);
+		this.name = "";
+		this.group = '';
+		this.userid = "" as ID;
+		this.named = false;
+		this.registered = null;
+		this.update(null);
 	}
 
 	updateRegExp() {
@@ -2813,7 +2820,7 @@ export const OfficialAuth = new class {
 		authorizeUrl.searchParams.append('client_id', encodeURIComponent(this.clientId));
 		authorizeUrl.searchParams.append('challenge', encodeURIComponent(user.challstr));
 
-		const popup = window.open(authorizeUrl, undefined, 'popup=1');
+		const popup = window.open(authorizeUrl, undefined);
 		const checkIfUpdated = () => {
 			try {
 				if (popup?.location?.href?.startsWith(this.redirectURI)) {
