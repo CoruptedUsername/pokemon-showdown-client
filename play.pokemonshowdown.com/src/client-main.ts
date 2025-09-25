@@ -2927,14 +2927,14 @@ export const OfficialAuth = new class {
 		console.debug("Cleared token storage");
 		localStorage.removeItem("ps-token");
 		localStorage.removeItem("ps-token-expiry");
-		localStorage.setItem("ps-token-userid", "");
+		localStorage.removeItem("ps-token-userid");
 	}
 
 	hasItemsStored(): boolean {
 		const token = localStorage.getItem("ps-token");
 		const tokenExpiry = localStorage.getItem("ps-tokenExpiry");
 		const userid = localStorage.getItem("ps-token-userid");
-		return token !== null && userid !== "" && userid !== null;
+		return token !== null && tokenExpiry !== null && userid !== null;
 	}
 
 	/**
