@@ -44,6 +44,9 @@
 				if (this.curTeam.format.includes('natalieused')) {
 					this.curTeam.dex = Dex.mod('gen9natu');
 				}
+				if (this.curTeam.format.includes('cavemanused')) {
+					this.curTeam.dex = Dex.mod('gen9cmu');
+				}
 				Storage.activeSetList = this.curSetList;
 			}
 		},
@@ -782,6 +785,9 @@
 			}
 			if (this.curTeam.format.includes('natalieused')) {
 				this.curTeam.dex = Dex.mod('gen9natu');
+			}
+			if (this.curTeam.format.includes('cavemanused')) {
+				this.curTeam.dex = Dex.mod('gen9cmu');
 			}
 			Storage.activeSetList = this.curSetList = Storage.unpackTeam(this.curTeam.team);
 			this.curTeamIndex = i;
@@ -1649,6 +1655,9 @@
 			}
 			if (this.curTeam.format.includes('natalieused')) {
 				this.curTeam.dex = Dex.mod('gen9natu');
+			}
+			if (this.curTeam.format.includes('cavemanused')) {
+				this.curTeam.dex = Dex.mod('gen9cmu');
 			}
 			this.save();
 			if (this.curTeam.gen === 5 && !Dex.loadedSpriteData['bw']) Dex.loadSpriteData('bw');
