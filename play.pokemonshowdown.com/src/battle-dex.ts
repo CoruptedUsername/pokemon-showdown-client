@@ -295,6 +295,9 @@ export const Dex = new class implements ModdedDex {
 		if (dex.gen === 9 && formatid.includes('cavemanused')) {
 			dex = Dex.mod('gen9cmu' as ID);
 		}
+		if (dex.gen === 8 && formatid.includes('firstgymused')) {
+			dex = Dex.mod('gen8firstgymused' as ID);
+		}
 		return dex;
 	}
 
@@ -1091,11 +1094,20 @@ export class ModdedDex {
 			}
 			if (this.cache.Species.hasOwnProperty(id)) return this.cache.Species[id];
 
-			let data = { ...Dex.species.get(name) };
+			let data;
 
+			if(Dex.species.get(name)) {
+				data = { ...Dex.species.get(name) };
+			}
+			else {
+				data = { ...window.BattleTeambuilderTable[this.modid].overrideSpeciesData[id] };
+			}
+			console.log("Pre-crash");
 			for (let i = Dex.gen - 1; i >= this.gen; i--) {
 				const table = window.BattleTeambuilderTable[`gen${i}`];
+				console.log(i)
 				if (id in table.overrideSpeciesData) {
+					console.log(id)
 					Object.assign(data, table.overrideSpeciesData[id]);
 				}
 			}

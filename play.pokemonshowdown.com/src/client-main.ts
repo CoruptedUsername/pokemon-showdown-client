@@ -718,6 +718,11 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 	}
 	logOut() {
 		window.open("https://play.pokemonshowdown.com/api/oauth/authorized", undefined);
+
+		PS.send(`/logout`);
+		PS.connection?.disconnect();
+
+		PS.alert("You have been logged out and disconnected.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
 		this.name = "";
 		this.group = '';
 		this.userid = "" as ID;

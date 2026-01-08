@@ -68,6 +68,7 @@ class TeamEditorState extends PSModel {
 	isDNU = false;
 	isRVC = false;
 	isNatU = false;
+	isFGU = false;
 	formeLegality: 'normal' | 'hackmons' | 'custom' = 'normal';
 	abilityLegality: 'normal' | 'hackmons' = 'normal';
 	defaultLevel = 100;
@@ -103,6 +104,7 @@ class TeamEditorState extends PSModel {
 		this.isDNU = formatid.includes('donotuse');
 		this.isRVC = formatid.includes('regionalvariantscup');
 		this.isNatU = formatid.includes('natalieused');
+		this.isFGU = formatid.includes('firstgymused');
 		if (formatid.includes('almostanyability') || formatid.includes('aaa')) {
 			this.abilityLegality = 'hackmons';
 		} else {
@@ -363,7 +365,8 @@ class TeamEditorState extends PSModel {
 		}
 	}
 	canAdd(): boolean {
-		return this.sets.length < 6 || this.team.isBox;
+		return (this.team.format === "gen9natalieused" && this.sets.length < 8) ||
+			(this.team.format !== "gen9natalieused" && this.sets.length < 6) || this.team.isBox;
 	}
 	getHPType(set: Dex.PokemonSet): Dex.TypeName {
 		if (set.hpType) return set.hpType as Dex.TypeName;
