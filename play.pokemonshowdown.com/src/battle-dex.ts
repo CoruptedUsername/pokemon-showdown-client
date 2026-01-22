@@ -273,7 +273,7 @@ export const Dex = new class implements ModdedDex {
 	forFormat(format: string) {
 		let dex = Dex.forGen(Dex.formatGen(format));
 
-		const formatid = toID(format).slice(4);
+		const formatid = toID(format).slice(4); // NewGenChange
 		if (dex.gen === 7 && formatid.includes('letsgo')) {
 			dex = Dex.mod('gen7letsgo' as ID);
 		}
@@ -297,6 +297,9 @@ export const Dex = new class implements ModdedDex {
 		}
 		if (dex.gen === 8 && formatid.includes('firstgymused')) {
 			dex = Dex.mod('gen8firstgymused' as ID);
+		}
+		if (dex.gen === 9 && formatid.includes('threemusketeers')) {
+			dex = Dex.mod('gen93m' as ID);
 		}
 		return dex;
 	}

@@ -20,7 +20,7 @@
 			}
 		},
 		focus: function () {
-			if (this.curTeam) {
+			if (this.curTeam) { // NewGenChange
 				this.curTeam.iconCache = '!';
 				this.curTeam.gen = this.getGen(this.curTeam.format);
 				this.curTeam.dex = Dex.forGen(this.curTeam.gen);
@@ -44,8 +44,8 @@
 				if (this.curTeam.format.includes('natalieused')) {
 					this.curTeam.dex = Dex.mod('gen9natu');
 				}
-				if (this.curTeam.format.includes('cavemanused')) {
-					this.curTeam.dex = Dex.mod('gen9cmu');
+				if (this.curTeam.format.includes('threemusketeers')) {
+					this.curTeam.dex = Dex.mod('gen93m');
 				}
 				Storage.activeSetList = this.curSetList;
 			}
@@ -756,7 +756,7 @@
 		reloadTeamsFolder: function () {
 			Storage.nwLoadTeams();
 		},
-		edit: function (i) {
+		edit: function (i) { // NewGenChange
 			this.teamScrollPos = this.$('.teampane').scrollTop();
 			if (i && i.currentTarget) {
 				i = $(i.currentTarget).data('value');
@@ -788,6 +788,9 @@
 			}
 			if (this.curTeam.format.includes('cavemanused')) {
 				this.curTeam.dex = Dex.mod('gen9cmu');
+			}
+			if (this.curTeam.format.includes('threemusketeers')) {
+				this.curTeam.dex = Dex.mod('gen93m');
 			}
 			Storage.activeSetList = this.curSetList = Storage.unpackTeam(this.curTeam.team);
 			this.curTeamIndex = i;
@@ -1632,7 +1635,7 @@
 				self.changeFormat(newFormat);
 			} });
 		},
-		changeFormat: function (format) {
+		changeFormat: function (format) { // NewGenChange
 			this.curTeam.format = format;
 			this.curTeam.gen = this.getGen(this.curTeam.format);
 			this.curTeam.dex = Dex.forGen(this.curTeam.gen);
@@ -1658,6 +1661,9 @@
 			}
 			if (this.curTeam.format.includes('cavemanused')) {
 				this.curTeam.dex = Dex.mod('gen9cmu');
+			}
+			if (this.curTeam.format.includes('threemusketeers')) {
+				this.curTeam.dex = Dex.mod('gen93m');
 			}
 			this.save();
 			if (this.curTeam.gen === 5 && !Dex.loadedSpriteData['bw']) Dex.loadSpriteData('bw');
