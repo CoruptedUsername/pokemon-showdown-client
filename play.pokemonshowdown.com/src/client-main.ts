@@ -2802,10 +2802,13 @@ export const OfficialAuth = new class {
 	authorize(user: PSUser): void {
 		if (window.location.pathname?.startsWith("/auth/")) { return; } // Prevent recursively opening if already at this page.
 
+		console.log(Config.routes.client);
+		console.log("Hi!");
 		const authorizeUrl = this.requestUrl("authorize");
 		authorizeUrl.searchParams.append('redirect_uri', `${this.redirectURI}/auth/`);
 		authorizeUrl.searchParams.append('client_id', encodeURIComponent(this.clientId));
 		authorizeUrl.searchParams.append('challenge', encodeURIComponent(user.challstr));
+		console.log(authorizeUrl);
 
 		const popup = window.open(authorizeUrl, undefined, 'popup=1');
 		const checkIfUpdated = () => {
