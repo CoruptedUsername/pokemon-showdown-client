@@ -44,6 +44,9 @@
 				if (this.curTeam.format.includes('natalieused')) {
 					this.curTeam.dex = Dex.mod('gen9natu');
 				}
+				if (this.curTeam.format.includes('firstgymused')) {
+					this.curTeam.dex = Dex.mod('gen8fgu');
+				}
 				if (this.curTeam.format.includes('threemusketeers')) {
 					this.curTeam.dex = Dex.mod('gen93m');
 				}
@@ -788,6 +791,9 @@
 			}
 			if (this.curTeam.format.includes('cavemanused')) {
 				this.curTeam.dex = Dex.mod('gen9cmu');
+			}
+			if (this.curTeam.format.includes('firstgymused')) {
+				this.curTeam.dex = Dex.mod('gen8fgu');
 			}
 			if (this.curTeam.format.includes('threemusketeers')) {
 				this.curTeam.dex = Dex.mod('gen93m');
@@ -1661,6 +1667,9 @@
 			}
 			if (this.curTeam.format.includes('cavemanused')) {
 				this.curTeam.dex = Dex.mod('gen9cmu');
+			}
+			if (this.curTeam.format.includes('firstgymused')) {
+				this.curTeam.dex = Dex.mod('gen8fgu');
 			}
 			if (this.curTeam.format.includes('threemusketeers')) {
 				this.curTeam.dex = Dex.mod('gen93m');

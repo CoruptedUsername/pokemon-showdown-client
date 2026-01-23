@@ -477,74 +477,75 @@ class PSTeams extends PSStreamModel<'team' | 'format'> {
 		};
 	}
 	loadRemoteTeams() {
-		PSLoginServer.query('getteams').then(data => {
-			if (!data) return;
-			if (data.actionerror) {
-				return PS.alert('Error loading uploaded teams: ' + data.actionerror);
-			}
-			const teams: { [key: string]: UploadedTeam } = {};
-			for (const team of data.teams) {
-				teams[team.teamid] = team;
-			}
-
-			// find exact teamid matches
-			for (const localTeam of this.list) {
-				if (localTeam.teamid) {
-					const team = teams[localTeam.teamid];
-					if (!team) {
-						continue;
-					}
-					localTeam.uploaded = {
-						teamid: team.teamid,
-						notLoaded: false,
-						private: team.private,
-					};
-					delete teams[localTeam.teamid];
-				}
-			}
-
-			// do best-guess matches for teams that don't have a local team with matching teamid
-			for (const team of Object.values(teams)) {
-				let matched = false;
-				for (const localTeam of this.list) {
-					if (localTeam.teamid) continue;
-
-					const compare = this.compareTeams(team, localTeam);
-					if (compare === 'rename') {
-						if (!localTeam.name.endsWith(' (local version)')) localTeam.name += ' (local version)';
-					} else if (compare) {
-						// prioritize locally saved teams over remote
-						// as so to not overwrite changes
-						matched = true;
-						localTeam.teamid = team.teamid;
-						localTeam.uploaded = {
-							teamid: team.teamid,
-							notLoaded: false,
-							private: team.private,
-						};
-						break;
-					}
-				}
-				if (!matched) {
-					const mons = team.team.split(',').map((m: string) => ({ species: m, moves: [] }));
-					const newTeam: Team = {
-						name: team.name,
-						format: team.format,
-						folder: '',
-						packedTeam: Teams.pack(mons),
-						iconCache: null,
-						isBox: false,
-						key: this.getKey(team.name),
-						uploaded: {
-							teamid: team.teamid,
-							notLoaded: true,
-							private: team.private,
-						},
-					};
-					this.push(newTeam);
-				}
-			}
-		});
+		return;
+		// PSLoginServer.query('getteams').then(data => {
+		// 	if (!data) return;
+		// 	if (data.actionerror) {
+		// 		return PS.alert('Error loading uploaded teams: ' + data.actionerror);
+		// 	}
+		// 	const teams: { [key: string]: UploadedTeam } = {};
+		// 	for (const team of data.teams) {
+		// 		teams[team.teamid] = team;
+		// 	}
+		//
+		// 	// find exact teamid matches
+		// 	for (const localTeam of this.list) {
+		// 		if (localTeam.teamid) {
+		// 			const team = teams[localTeam.teamid];
+		// 			if (!team) {
+		// 				continue;
+		// 			}
+		// 			localTeam.uploaded = {
+		// 				teamid: team.teamid,
+		// 				notLoaded: false,
+		// 				private: team.private,
+		// 			};
+		// 			delete teams[localTeam.teamid];
+		// 		}
+		// 	}
+		//
+		// 	// do best-guess matches for teams that don't have a local team with matching teamid
+		// 	for (const team of Object.values(teams)) {
+		// 		let matched = false;
+		// 		for (const localTeam of this.list) {
+		// 			if (localTeam.teamid) continue;
+		//
+		// 			const compare = this.compareTeams(team, localTeam);
+		// 			if (compare === 'rename') {
+		// 				if (!localTeam.name.endsWith(' (local version)')) localTeam.name += ' (local version)';
+		// 			} else if (compare) {
+		// 				// prioritize locally saved teams over remote
+		// 				// as so to not overwrite changes
+		// 				matched = true;
+		// 				localTeam.teamid = team.teamid;
+		// 				localTeam.uploaded = {
+		// 					teamid: team.teamid,
+		// 					notLoaded: false,
+		// 					private: team.private,
+		// 				};
+		// 				break;
+		// 			}
+		// 		}
+		// 		if (!matched) {
+		// 			const mons = team.team.split(',').map((m: string) => ({ species: m, moves: [] }));
+		// 			const newTeam: Team = {
+		// 				name: team.name,
+		// 				format: team.format,
+		// 				folder: '',
+		// 				packedTeam: Teams.pack(mons),
+		// 				iconCache: null,
+		// 				isBox: false,
+		// 				key: this.getKey(team.name),
+		// 				uploaded: {
+		// 					teamid: team.teamid,
+		// 					notLoaded: true,
+		// 					private: team.private,
+		// 				},
+		// 			};
+		// 			this.push(newTeam);
+		// 		}
+		// 	}
+		// });
 	}
 	loadTeam(team: Team | undefined | null, ifNeeded: true): void | Promise<void>;
 	loadTeam(team: Team | undefined | null): Promise<void>;
@@ -717,19 +718,15 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 		}
 	}
 	logOut() {
+		OfficialAuth.clearTokenStorage()
 		window.open("https://play.pokemonshowdown.com/api/oauth/authorized", undefined);
-
-		PS.send(`/logout`);
-		PS.connection?.disconnect();
-
-		PS.alert("You have been logged out and disconnected.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
 		this.name = "";
 		this.group = '';
 		this.userid = "" as ID;
 		this.named = false;
 		this.registered = null;
 		this.update(null);
-		OfficialAuth.clearTokenStorage()
+		PS.alert("You have been logged out and disconnected.\n\nIf you wanted to change your name while staying connected, use the 'Change Name' button or the '/nick' command.");
 	}
 
 	updateRegExp() {
@@ -2741,7 +2738,7 @@ export const OfficialAuth = new class {
 	}
 
 	/**
-	 * Refreshes the currently stored auth token in cookies.
+	 * Refreshes the currently stored auth token in local storage.
 	 * Returns false if no token was found, or it already expired.
 	 * True if operation succeeded.
 	 */
@@ -2810,7 +2807,7 @@ export const OfficialAuth = new class {
 		authorizeUrl.searchParams.append('client_id', encodeURIComponent(this.clientId));
 		authorizeUrl.searchParams.append('challenge', encodeURIComponent(user.challstr));
 
-		const popup = window.open(authorizeUrl, undefined);
+		const popup = window.open(authorizeUrl, undefined, 'popup=1');
 		const checkIfUpdated = () => {
 			try {
 				if (popup?.location?.href?.startsWith(this.redirectURI)) {
@@ -2885,8 +2882,13 @@ export const OfficialAuth = new class {
 				token: encodeURIComponent(token as string), // Casting because token === null is excluded by Authorized.
 			})
 		})
+		const responseText = await response.text();
+		// if it starts with ] or { then it's not good. Then crash out.
+		if (responseText.startsWith(']') || responseText.startsWith('{')) {
+			return null;
+		}
 		console.debug("Returning response text.");
-		return await response.text(); // This is our assertion!
+		return responseText; // This is our assertion!
 	}
 
 	async revoke() {
@@ -2916,14 +2918,14 @@ export const OfficialAuth = new class {
 		console.debug("Cleared token storage");
 		localStorage.removeItem("ps-token");
 		localStorage.removeItem("ps-token-expiry");
-		localStorage.removeItem("ps-token-userid");
+		localStorage.setItem("ps-token-userid", "");
 	}
 
 	hasItemsStored(): boolean {
 		const token = localStorage.getItem("ps-token");
 		const tokenExpiry = localStorage.getItem("ps-tokenExpiry");
 		const userid = localStorage.getItem("ps-token-userid");
-		return token !== null && tokenExpiry !== null && userid !== null;
+		return token !== null && userid !== "" && userid !== null;
 	}
 
 	/**

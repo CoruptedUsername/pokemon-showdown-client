@@ -1826,8 +1826,7 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 				format.startsWith('vgc') || (dex.gen === 9 && this.formatType !== 'natdex' && this.formatType !==
 					'donotuse' && this.formatType !== 'donotusevgc' && this.formatType !== 'donotuselegacy' &&
 					this.formatType !== 'regionalvariantscup' && this.formatType !== 'natalieused'
-					&& this.formatType !== 'cavemanused' && this.formatType !== 'firstgymused' &&
-					this.formatType !== 'threemusketeers'));
+					&& this.formatType !== 'cavemanused' && this.formatType !== 'threemusketeers'));
 
 		let learnsetid = this.firstLearnsetid(species.id);
 		let moves: string[] = [];
@@ -1875,8 +1874,7 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 					if (this.formatType !== 'natdex' && this.formatType !== 'donotuse' && this.formatType !== 'donotusevgc'
 						&& this.formatType !== 'donotuselegacy' && this.formatType !== 'regionalvariantscup'
 						&& this.formatType !== 'natalieused' && this.formatType !== 'cavemanused'
-						&& this.formatType !== "firstgymused" && this.formatType !== "threemusketeers" &&
-						move.isNonstandard === 'Past') {
+						&& this.formatType !== "threemusketeers" && move.isNonstandard === 'Past') {
 						continue;
 					}
 					if (
