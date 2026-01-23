@@ -718,7 +718,7 @@ export class PSUser extends PSStreamModel<PSLoginState | null> {
 		}
 	}
 	logOut() {
-		OfficialAuth.clearTokenStorage()
+		OfficialAuth.clearTokenStorage();
 		window.open("https://play.pokemonshowdown.com/api/oauth/authorized", undefined);
 		this.name = "";
 		this.group = '';
