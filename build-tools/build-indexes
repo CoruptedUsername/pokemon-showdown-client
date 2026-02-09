@@ -125,6 +125,7 @@ function requireNoCache(pathSpec) {
 	}
 	for (const id in Dex.data.Pokedex) {
 		const name = Dex.data.Pokedex[id].name;
+		if (Dex.data.Pokedex[id].isCosmeticForme) continue;
 		generateAlias(id, name, 'pokemon');
 	}
 	for (const id in Dex.data.Moves) {
@@ -222,7 +223,10 @@ function requireNoCache(pathSpec) {
 
 	for (const type in Dex.data.TypeChart) {
 		BattleSearchCountIndex[type + ' pokemon'] = Object.keys(Dex.data.Pokedex)
-			.filter(id => (Dex.data.Pokedex[id].types.indexOf(type) >= 0)).length;
+			.filter(id => (
+				!Dex.data.Pokedex[id].isCosmeticForme &&
+				Dex.data.Pokedex[id].types.indexOf(type) >= 0
+			)).length;
 	}
 
 	let buf = '// DO NOT EDIT - automatically built with build-tools/build-indexes\n\n';
@@ -291,10 +295,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		pokemon.sort();
 		const tierTable = {};
 		const overrideTier = {};
-		const ubersUUBans = {};
-		const ndDoublesBans = {};
-		const thirtyfivePokes = {};
-		const monotypeBans = {};
+		const metagameBans = {};
 		const nonstandardMoves = [];
 		const gen5zuBans = {};
 		const gen4puBans = {};
@@ -316,6 +317,14 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 						return species.doublesTier;
 					}
 					return 'Illegal';
+					if ((species.name === 'Xerneas' || species.battleOnly || species.forme === 'Eternamax') &&
+						!(species.isMega || species.isPrimal || ['Greninja-Ash', 'Necrozma-Ultra'].includes(species.name))) {
+						return 'Illegal';
+					}
+					if (species.isNonstandard && ['LGPE', 'CAP', 'Future'].includes(species.isNonstandard)) return 'Illegal';
+					return species.tags.includes('Mythical') ? 'Mythical' :
+						species.tags.includes('Restricted Legendary') ? 'Restricted' :
+						species.nfe ? (species.prevo ? 'NFE' : 'LC') : 'Regular';
 				}
 				if (isDoubles && genNum > 4) {
 					return species.doublesTier;
@@ -328,7 +337,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 					[
 						'Aegislash', 'Castform', 'Cherrim', 'Cramorant', 'Eiscue', 'Meloetta', 'Mimikyu', 'Minior', 'Morpeko', 'Ramnarok', 'Wishiwashi',
 					].includes(species.baseSpecies) || species.forme.includes('Totem') || species.forme.includes('Zen') ||
-					(species.baseSpecies === 'Ogerpon' && species.forme.includes('Tera'))
+					(species.baseSpecies === 'Ogerpon' && species.forme.includes('Tera')) || species.isCosmeticForme
 				) {
 					continue;
 				}
@@ -417,11 +426,13 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			BattleTeambuilderTable[gen].items = items;
 			BattleTeambuilderTable[gen].formatSlices = formatSlices;
 			if (genNum >= 5) {
-				BattleTeambuilderTable[gen].monotypeBans = monotypeBans;
+				BattleTeambuilderTable[gen].metagameBans = metagameBans;
 			}
 		}
 
 		const tierOrder = (() => {
+			if (isVGC || isGen9BH) {
+				return ["Mythical", "Restricted", "Regular", "NFE", "LC"];
 			if ((isDNU || isDNULegacy) && !isDoubles) {
 				return ["DoNU AG", "DoNU Uber", "DoNU OU", "DoNU UUBL", "DoNU UU", "DoNU RUBL", "DoNU RU"];
 			}
@@ -562,7 +573,8 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 				break;
 			// metronome only
 			case 'mirrorherb':
-				goodItems.push(id);
+				if (isMetBattle) greatItems.push(id);
+				else goodItems.push(id);
 				break;
 			// generation specific
 			case 'mentalherb':
@@ -1095,7 +1107,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 				BattleTeambuilderTable['gen8fgu'].learnsets[id][moveid] += 'p';
 			}
 			if (gens.indexOf(7) >= 0 && learnset[moveid].some(x => x[0] === '7' && x !== '7V')) {
-				BattleTeambuilderTable['gen8fgu'].learnsets[id][moveid] += 'q';
+				BattleTeambuilderTable['gen9predlc'].learnsets[id][moveid] += 'q';
 			}
 			if (gens.indexOf(8) >= 0 && learnset[moveid].some(x => x[0] === '8' && x !== '8V')) {
 				BattleTeambuilderTable['gen8fgu'].learnsets[id][moveid] += 'g';
