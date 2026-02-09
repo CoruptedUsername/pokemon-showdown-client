@@ -1003,7 +1003,7 @@ p.or:after {
 }
 .roomcounters button:hover .battlecount {
 	background: url(https://play.pokemonshowdown.com/sprites/gen5ani/meloetta-pirouette.gif) center no-repeat;
-}
+} 
 
 .roomlist {
 	max-width: 480px;
