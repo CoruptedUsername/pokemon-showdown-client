@@ -20,7 +20,7 @@
 			}
 		},
 		focus: function () {
-			if (this.curTeam) { // NewGenChange
+			if (this.curTeam) { // OldGenChange
 				this.curTeam.iconCache = '!';
 				this.curTeam.gen = this.getGen(this.curTeam.format);
 				this.curTeam.dex = Dex.forGen(this.curTeam.gen);
@@ -759,7 +759,7 @@
 		reloadTeamsFolder: function () {
 			Storage.nwLoadTeams();
 		},
-		edit: function (i) { // NewGenChange
+		edit: function (i) { // OldGenChange
 			this.teamScrollPos = this.$('.teampane').scrollTop();
 			if (i && i.currentTarget) {
 				i = $(i.currentTarget).data('value');
@@ -1641,7 +1641,7 @@
 				self.changeFormat(newFormat);
 			} });
 		},
-		changeFormat: function (format) { // NewGenChange
+		changeFormat: function (format) { // OldGenChange
 			this.curTeam.format = format;
 			this.curTeam.gen = this.getGen(this.curTeam.format);
 			this.curTeam.dex = Dex.forGen(this.curTeam.gen);

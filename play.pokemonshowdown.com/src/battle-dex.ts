@@ -272,34 +272,10 @@ export const Dex = new class implements ModdedDex {
 	}
 	forFormat(format: string) {
 		let dex = Dex.forGen(Dex.formatGen(format));
-
-		const formatid = toID(format).slice(4); // NewGenChange
-		if (dex.gen === 7 && formatid.includes('letsgo')) {
-			dex = Dex.mod('gen7letsgo' as ID);
-		}
-		if (dex.gen === 8 && formatid.includes('bdsp')) {
-			dex = Dex.mod('gen8bdsp' as ID);
-		}
-		if (dex.gen === 9 && formatid.includes('donotuse') && !formatid.includes('legacy')) {
-			dex = Dex.mod('gen9dnu' as ID);
-		}
-		if (dex.gen === 9 && formatid.includes('donotuse') && formatid.includes('legacy')) {
-			dex = Dex.mod('gen9dnulegacy' as ID);
-		}
-		if (dex.gen === 9 && formatid.includes('regionalvariantscup')) {
-			dex = Dex.mod('gen9rvc' as ID);
-		}
-		if (dex.gen === 9 && formatid.includes('natalieused')) {
-			dex = Dex.mod('gen9natu' as ID);
-		}
-		if (dex.gen === 9 && formatid.includes('cavemanused')) {
-			dex = Dex.mod('gen9cmu' as ID);
-		}
-		if (dex.gen === 8 && formatid.includes('firstgymused')) {
-			dex = Dex.mod('gen8firstgymused' as ID);
-		}
-		if (dex.gen === 9 && formatid.includes('threemusketeers')) {
-			dex = Dex.mod('gen93m' as ID);
+		for (const builderTable in window.BattleTeambuilderTable) {
+			if (Object.keys(window.BattleTeambuilderTable[builderTable].formatNames).includes(format)) {
+				dex = Dex.mod(builderTable as ID);
+			}
 		}
 		return dex;
 	}
@@ -1039,16 +1015,20 @@ export class ModdedDex {
 
 			let data = { ...Dex.items.get(name) };
 
+			let stuff = data.relevantTiers;
+
 			for (let i = Dex.gen - 1; i >= this.gen; i--) {
 				const table = window.BattleTeambuilderTable[`gen${i}`];
 				if (id in table.overrideItemData) {
 					Object.assign(data, table.overrideItemData[id]);
+					console.log(table.overrideItemData[id]);
 				}
 			}
 			if (this.modid !== `gen${this.gen}`) {
 				const table = window.BattleTeambuilderTable[this.modid];
 				if (id in table.overrideItemData) {
 					Object.assign(data, table.overrideItemData[id]);
+					console.log(table.overrideItemData[id]);
 				}
 			}
 
@@ -1097,20 +1077,11 @@ export class ModdedDex {
 			}
 			if (this.cache.Species.hasOwnProperty(id)) return this.cache.Species[id];
 
-			let data;
+			let data  = { ...Dex.species.get(name) };
 
-			if(Dex.species.get(name)) {
-				data = { ...Dex.species.get(name) };
-			}
-			else {
-				data = { ...window.BattleTeambuilderTable[this.modid].overrideSpeciesData[id] };
-			}
-			console.log("Pre-crash");
 			for (let i = Dex.gen - 1; i >= this.gen; i--) {
 				const table = window.BattleTeambuilderTable[`gen${i}`];
-				console.log(i)
 				if (id in table.overrideSpeciesData) {
-					console.log(id)
 					Object.assign(data, table.overrideSpeciesData[id]);
 				}
 			}

@@ -66,11 +66,6 @@ export class TeamEditorState extends PSModel {
 	isLetsGo = false;
 	isNatDex = false;
 	isBDSP = false;
-	isDNU = false;
-	isRVC = false;
-	isNatU = false;
-	isFGU = false;
-	is3M = false; // NewGenChange
 	formeLegality: 'normal' | 'hackmons' | 'custom' = 'normal';
 	abilityLegality: 'normal' | 'hackmons' = 'normal';
 	defaultLevel = 100;
@@ -99,39 +94,36 @@ export class TeamEditorState extends PSModel {
 		this.dex = Dex.forFormat(formatid);
 		this.gen = this.dex.gen;
 
-		format = toID(format).slice(4); // NewGenChange
-		this.isLetsGo = formatid.includes('letsgo');
-		this.isNatDex = formatid.includes('nationaldex') || formatid.includes('natdex');
-		this.isBDSP = formatid.includes('bdsp');
-		this.isDNU = formatid.includes('donotuse');
-		this.isRVC = formatid.includes('regionalvariantscup');
-		this.isNatU = formatid.includes('natalieused');
-		this.isFGU = formatid.includes('firstgymused');
-		this.is3M = formatid.includes('threemusketeers');
-		if (formatid.includes('almostanyability') || formatid.includes('aaa')) {
-			this.abilityLegality = 'hackmons';
-		} else {
-			this.abilityLegality = 'normal';
-		}
-		if (formatid.includes('hackmons') || formatid.includes('bh')) {
-			this.formeLegality = 'hackmons';
-			this.abilityLegality = 'hackmons';
-		} else if (formatid.includes('metronome') || formatid.includes('customgame')) {
-			this.formeLegality = 'custom';
-			this.abilityLegality = 'hackmons';
-		} else {
-			this.formeLegality = 'normal';
+		let currentBuilder = "gen9standard";
+		this.defaultLevel = 100;
+
+		for (const builderTable in window.BattleTeambuilderTable) { // NewerGenChange
+			if (formatid in window.BattleTeambuilderTable[builderTable].formatNames) {
+				currentBuilder = builderTable;
+				break;
+			}
 		}
 
-		this.defaultLevel = 100;
-		if (
-			formatid.includes('vgc') || formatid.includes('bss') || formatid.includes('ultrasinnohclassic') ||
-			formatid.includes('battlespot') || formatid.includes('battlestadium') || formatid.includes('battlefestival')
-		) {
-			this.defaultLevel = 50;
-		}
-		if (formatid.includes('lc')) {
-			this.defaultLevel = 5;
+		if (formatid in window.BattleTeambuilderTable[currentBuilder].formatNames) {
+			if (window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].hasOwnProperty("bonusRules")) {
+				if ("AAA" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+					this.abilityLegality = 'hackmons';
+				} else {
+					this.abilityLegality = 'normal';
+				}
+				if ("Hackmons" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules ||
+					"Balanced Hackmons" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+					this.formeLegality = 'hackmons';
+					this.abilityLegality = 'hackmons';
+				} else if ("Metronome" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules ||
+					"Custom Game" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+					this.formeLegality = 'custom';
+					this.abilityLegality = 'hackmons';
+				} else {
+					this.formeLegality = 'normal';
+				}
+			}
+			this.defaultLevel = window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].defaultLevel;
 		}
 	}
 	setSearchType(type: SearchType, i: number, value?: string) {

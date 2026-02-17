@@ -1167,6 +1167,10 @@ export class Item implements Effect {
 	readonly isPokeball: boolean;
 	readonly itemUser?: readonly string[];
 
+	readonly relevantTiers?: string[];
+	readonly relevantAbilities?: string[];
+	readonly relevantPokemon?: string[];
+
 	constructor(id: ID, name: string, data: any) {
 		if (!data || typeof data !== 'object') data = {};
 		if (data.name) name = data.name;
@@ -1192,6 +1196,9 @@ export class Item implements Effect {
 		this.naturalGift = data.naturalGift || null;
 		this.isPokeball = !!data.isPokeball;
 		this.itemUser = data.itemUser;
+
+		this.relevantTiers = data.relevantTiers || [];
+		this.relevantAbilities = data.relevantAbilities || [];
 
 		if (!this.gen) {
 			if (this.num >= 577) {
