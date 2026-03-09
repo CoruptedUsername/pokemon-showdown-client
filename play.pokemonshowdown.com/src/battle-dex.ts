@@ -272,10 +272,8 @@ export const Dex = new class implements ModdedDex {
 	}
 	forFormat(format: string) {
 		let dex = Dex.forGen(Dex.formatGen(format));
-		for (const builderTable in window.BattleTeambuilderTable) {
-			if (Object.keys(window.BattleTeambuilderTable[builderTable].formatNames).includes(format)) {
-				dex = Dex.mod(builderTable as ID);
-			}
+		if (window.BattleTeambuilderTable.Formats[format]) {
+			dex = Dex.mod(window.BattleTeambuilderTable.Formats[format].mod)
 		}
 		return dex;
 	}
@@ -1087,7 +1085,7 @@ export class ModdedDex {
 			}
 			if (this.modid !== `gen${this.gen}`) {
 				const table = window.BattleTeambuilderTable[this.modid];
-				if (id in table.overrideSpeciesData) {
+				if (id in table?.overrideSpeciesData) {
 					Object.assign(data, table.overrideSpeciesData[id]);
 				}
 			}

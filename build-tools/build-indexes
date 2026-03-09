@@ -39,6 +39,40 @@ function requireNoCache(pathSpec) {
 }
 
 /*********************************************************
+ * Initialize BattleTeamBuilder
+ *********************************************************/
+
+const BattleTeambuilderTable = {};
+
+BattleTeambuilderTable.Formats = {};
+
+for (const modDex in Dex.dexes) {
+	if (!Dex.mod(modDex).data.Scripts.teambuilders) {
+		continue;
+	}
+	for (const builder of Object.keys(Dex.mod(modDex).data.Scripts.teambuilders)) {
+		const builderData = Dex.mod(modDex).data.Scripts.teambuilders[builder];
+		BattleTeambuilderTable[builder] = {}
+		BattleTeambuilderTable[builder].mod = modDex;
+		BattleTeambuilderTable[builder].formatType = builderData.formatType;
+		BattleTeambuilderTable[builder].isNatDex = builderData.isNatDex;
+		BattleTeambuilderTable[builder].bonusRules = builderData?.bonusRules;
+		for (const format of Object.keys(builderData.formats)) {
+			const formatData = builderData.formats[format];
+			BattleTeambuilderTable.Formats[format] = {};
+			BattleTeambuilderTable.Formats[format].mod = modDex;
+			BattleTeambuilderTable.Formats[format].builder = builder;
+			BattleTeambuilderTable.Formats[format].topSlice = formatData.topSlice;
+			BattleTeambuilderTable.Formats[format].bottomSlice = formatData?.bottomSlice;
+			BattleTeambuilderTable.Formats[format].defaultLevel = formatData.defaultLevel;
+			BattleTeambuilderTable.Formats[format].bonusRules = formatData?.bonusRules;
+		}
+	}
+}
+
+
+
+/*********************************************************
  * Build search-index.js
  *********************************************************/
 
@@ -47,7 +81,21 @@ function requireNoCache(pathSpec) {
 
 	let index = [];
 
+	const BuilderMods = [];
+	for (const modDex in Dex.dexes) {
+		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+			BuilderMods.push(modDex);
+		}
+	}
+
 	index = index.concat(Object.keys(Dex.data.Pokedex).map(x => x + ' pokemon'));
+	for (const mod of BuilderMods) {
+		for (const mon in Dex.mod(mod).data.Pokedex) {
+			if (!index.includes(mon + ' pokemon')) {
+				index.concat(mon + ' pokemon');
+			}
+		}
+	}
 	index = index.concat(Object.keys(Dex.data.Moves).map(x => x + ' move'));
 	index = index.concat(Object.keys(Dex.data.Items).map(x => x + ' item'));
 	index = index.concat(Object.keys(Dex.data.Abilities).map(x => x + ' ability'));
@@ -251,336 +299,326 @@ console.log("DONE");
 process.stdout.write("Building `data/teambuilder-tables.js`... ");
 
 {
-	const BattleTeambuilderTable = {};
 
 	let buf = '// DO NOT EDIT - automatically built with build-tools/build-indexes\n\n';
-
-	const BuilderMods = [];
-	for (const modDex in Dex.dexes) {
-		if (Dex.mod(modDex).data.Scripts.teambuilders) {
-			BuilderMods.push(modDex);
-			console.log(modDex);
-		}
-	}
 	// process.stdout.write("\n  ");
-	for (const gen of BuilderMods) {
-		for (const tableKey in Dex.mod(gen).data.Scripts.teambuilders) {
-			const genTable = Dex.mod(gen).data.Scripts.teambuilders[tableKey];
-			const pokemon = Object.keys(Dex.mod(gen).data.Pokedex);
-			pokemon.sort();
-			const tierTable = {};
-			const overrideTier = {};
-			for (const id of pokemon) {
-				const species = Dex.mod(gen).species.get(id);
-				if (species.gen > Dex.mod(gen).data.Scripts.gen) continue;
-				const speciesTier = (() => {
-					const tempTier = genTable.tierType === "tier" ? species.tier: genTable.tierType === "doublesTier" ? species.doublesTier: species.natDexTier;
-					if (genTable.validTiers.includes(tempTier)) {
-						return tempTier;
-					} else {
-						return 'Illegal';
-					}
-				})();
-				overrideTier[species.id] = speciesTier;
-				if (!tierTable[speciesTier]) tierTable[speciesTier] = [];
-				tierTable[speciesTier].push(id);
-			}
-
-			const tiers = [];
-			const items = [];
-			const formatSlices = {};
-
-			BattleTeambuilderTable[tableKey] = {};
-			BattleTeambuilderTable[tableKey].learnsets = {};
-			BattleTeambuilderTable[tableKey].tiers = tiers;
-			BattleTeambuilderTable[tableKey].items = items;
-			BattleTeambuilderTable[tableKey].overrideTier = overrideTier;
-			BattleTeambuilderTable[tableKey].formatSlices = formatSlices;
-			BattleTeambuilderTable[tableKey].formatNames = genTable.formats;
-			BattleTeambuilderTable[tableKey].formatType = genTable.formatType;
-			BattleTeambuilderTable[tableKey].isNatDex = genTable.isNatDex;
-
-			let tierOrder = [];
-
-			if (genTable.validTiers) {
-				tierOrder = genTable.validTiers;
-			} else {
-				tierOrder = [ "CAP", "CAP NFE", "CAP LC", "AG", "Uber", "(Uber)", "OU", "(OU)", "UUBL", "UU",
-					"RUBL", "RU", "NUBL", "NU", "PUBL", "PU", "ZUBL", "ZU", "New", "NFE", "LC", "Unreleased"];
-			}
-
-			for (const tier of tierOrder) {
-				formatSlices[tier] = tiers.length;
-				if (!tierTable[tier]) continue;
-				tiers.push(['header', tier]);
-				tiers.push(...tierTable[tier]);
-			}
-
-			const itemList = Object.keys(Dex.data.Items);
-			itemList.sort();
-
-			const greatItems = [['header', "Popular items"]];
-			const goodItems = [['header', "Items"]];
-			const specificItems = [['header', "Pok\u00e9mon-specific items"]];
-			const poorItems = [['header', "Usually useless items"]];
-			const badItems = [['header', "Useless items"]];
-			const unreleasedItems = [];
-			if (Dex.mod(gen).data.Scripts.gen === 6) unreleasedItems.push(['header', "Unreleased"]);
-
-			for (const id of itemList) {
-				const item = Dex.mod(gen).items.get(id);
-				if (item.gen > Dex.mod(gen).data.Scripts.gen) {
-					continue;
+	for (const tableKey of Object.keys(BattleTeambuilderTable)) {
+		if (tableKey === "Formats") {
+			continue;
+		}
+		const gen = BattleTeambuilderTable[tableKey]["mod"];
+		const genTable = Dex.mod(gen).data.Scripts.teambuilders[tableKey];
+		const pokemon = Object.keys(Dex.mod(gen).data.Pokedex);
+		pokemon.sort();
+		const tierTable = {};
+		const overrideTier = {};
+		for (const id of pokemon) {
+			const species = Dex.mod(gen).species.get(id);
+			if (species.gen > Dex.mod(gen).data.Scripts.gen) continue;
+			const speciesTier = (() => {
+				const tempTier = genTable.tierType === "tier" ? species.tier: genTable.tierType === "doublesTier" ? species.doublesTier: species.natDexTier;
+				if (genTable.validTiers.includes(tempTier)) {
+					return tempTier;
+				} else {
+					return 'Illegal';
 				}
-				if (item.isNonstandard) {
-					if (genTable.isNatDex) {
-						let curItem = item;
-						let curGen = Dex.mod(gen).data.Scripts.gen;
-						while (curItem.isNonstandard && curGen >= 7) {
-							curItem = Dex.forGen(curGen).items.get(item.id);
-							curGen--;
-						}
-						if (curItem.isNonstandard) {
-							continue;
-						}
-					} else if (Dex.mod(gen).data.Scripts.gen !== 2) {
+			})();
+			overrideTier[species.id] = speciesTier;
+			if (!tierTable[speciesTier]) tierTable[speciesTier] = [];
+			tierTable[speciesTier].push(id);
+		}
+
+		const tiers = [];
+		const items = [];
+		const formatSlices = {};
+
+		BattleTeambuilderTable[tableKey].learnsets = {};
+		BattleTeambuilderTable[tableKey].tiers = tiers;
+		BattleTeambuilderTable[tableKey].items = items;
+		BattleTeambuilderTable[tableKey].overrideTier = overrideTier;
+		BattleTeambuilderTable[tableKey].formatSlices = formatSlices;
+		BattleTeambuilderTable[tableKey].formatNames = genTable.formats;
+
+		let tierOrder = [];
+
+		if (genTable.validTiers) {
+			tierOrder = genTable.validTiers;
+		} else {
+			tierOrder = [ "CAP", "CAP NFE", "CAP LC", "AG", "Uber", "(Uber)", "OU", "(OU)", "UUBL", "UU",
+				"RUBL", "RU", "NUBL", "NU", "PUBL", "PU", "ZUBL", "ZU", "New", "NFE", "LC", "Unreleased"];
+		}
+
+		for (const tier of tierOrder) {
+			formatSlices[tier] = tiers.length;
+			if (!tierTable[tier]) continue;
+			tiers.push(['header', tier]);
+			tiers.push(...tierTable[tier]);
+		}
+
+		const itemList = Object.keys(Dex.data.Items);
+		itemList.sort();
+
+		const greatItems = [['header', "Popular items"]];
+		const goodItems = [['header', "Items"]];
+		const specificItems = [['header', "Pok\u00e9mon-specific items"]];
+		const poorItems = [['header', "Usually useless items"]];
+		const badItems = [['header', "Useless items"]];
+		const unreleasedItems = [];
+		if (Dex.mod(gen).data.Scripts.gen === 6) unreleasedItems.push(['header', "Unreleased"]);
+
+		for (const id of itemList) {
+			const item = Dex.mod(gen).items.get(id);
+			if (item.gen > Dex.mod(gen).data.Scripts.gen) {
+				continue;
+			}
+			if (item.isNonstandard) {
+				if (genTable.isNatDex) {
+					let curItem = item;
+					let curGen = Dex.mod(gen).data.Scripts.gen;
+					while (curItem.isNonstandard && curGen >= 7) {
+						curItem = Dex.forGen(curGen).items.get(item.id);
+						curGen--;
+					}
+					if (curItem.isNonstandard) {
 						continue;
 					}
+				} else if (Dex.mod(gen).data.Scripts.gen !== 2) {
+					continue;
 				}
-				switch (id) {
-					// mainstays
-					case 'choiceband':
-					case 'choicespecs':
-					case 'eviolite':
-						greatItems.push(id);
-						break;
-					// great everywhere but metronome
-					case 'leftovers':
-					case 'lifeorb':
-					case 'choicescarf':
-					case 'assaultvest':
-					case 'focussash':
-					case 'powerherb':
-					case 'rockyhelmet':
-						greatItems.push(id)
-						break;
-					// just singles
-					case 'airballoon':
-					case 'loadeddice':
-					case 'heavydutyboots':
-					case 'expertbelt':
-					case 'salacberry':
-						if (genTable.formatType === "doubles") goodItems.push(id);
-						else greatItems.push(id);
-						break;
-					// just doubles
-					case 'safetygoggles':
-					case 'ejectbutton':
-					case 'ejectpack':
-						if (genTable.formatType === "doubles") greatItems.push(id);
-						else goodItems.push(id);
-						break;
-					// doubles + metronome
-					case 'covertcloak':
-					case 'clearamulet':
-					case 'weaknesspolicy':
-						if (genTable.formatType === "doubles") greatItems.push(id);
-						else goodItems.push(id);
-						break;
-					// metronome only
-					case 'mirrorherb':
-						goodItems.push(id);
-						break;
-					// generation specific
-					case 'mentalherb':
-						if (Dex.mod(gen).data.Scripts.gen > 4) greatItems.push(id);
-						else poorItems.push(id);
-						break;
-					case 'lumberry':
-						if (Dex.mod(gen).data.Scripts.gen === 2 || Dex.mod(gen).data.Scripts.gen > 6) goodItems.push(id);
-						else greatItems.push(id);
-						break;
-					case 'sitrusberry':
-						if (Dex.mod(gen).data.Scripts.gen > 3 && (Dex.mod(gen).data.Scripts.gen < 7 || genTable.formatType === "doubles")) greatItems.push(id);
-						else if (Dex.mod(gen).data.Scripts.gen > 6) goodItems.push(id);
-						else poorItems.push(id);
-						break;
-					case 'aguavberry':
-					case 'figyberry':
-					case 'iapapaberry':
-					case 'magoberry':
-					case 'wikiberry':
-						if (Dex.mod(gen).data.Scripts.gen === 7) greatItems.push(id);
-						else if (Dex.mod(gen).data.Scripts.gen >= 8) goodItems.push(id);
-						else poorItems.push(id);
-						break;
-					case 'berryjuice':
-						if (Dex.mod(gen).data.Scripts.gen === 2) poorItems.push(id);
-						else goodItems.push(id);
-						break;
-					case 'dragonfang':
-						if (Dex.mod(gen).data.Scripts.gen === 2) badItems.push(id);
-						else goodItems.push(id);
-						break;
-					case 'dragonscale':
-						if (Dex.mod(gen).data.Scripts.gen === 2) goodItems.push(id);
-						else badItems.push(id);
-						break;
-					case 'mail':
-						if (Dex.mod(gen).data.Scripts.gen >= 6) unreleasedItems.push(id);
-						else goodItems.push(id);
-						break;
-					// Legendaries
-					case 'adamantorb':
-					case 'griseousorb':
-					case 'lustrousorb':
-					case 'blueorb':
-					case 'redorb':
-					case 'souldew':
-					// falls through
-					// Other
-					case 'leek':
-					case 'stick':
-					case 'thickclub':
-					case 'lightball':
-					case 'luckypunch':
-					case 'quickpowder':
-					case 'metalpowder':
-					case 'deepseascale':
-					case 'deepseatooth':
-						specificItems.push(id);
-						break;
-					// Fling-only
-					case 'rarebone':
-					case 'belueberry':
-					case 'blukberry':
-					case 'cornnberry':
-					case 'durinberry':
-					case 'hondewberry':
-					case 'magostberry':
-					case 'nanabberry':
-					case 'nomelberry':
-					case 'pamtreberry':
-					case 'pinapberry':
-					case 'pomegberry':
-					case 'qualotberry':
-					case 'rabutaberry':
-					case 'razzberry':
-					case 'spelonberry':
-					case 'tamatoberry':
-					case 'watmelberry':
-					case 'wepearberry':
-					case 'energypowder':
-					case 'electirizer':
-					case 'oldamber':
-					case 'dawnstone':
-					case 'dubiousdisc':
-					case 'duskstone':
-					case 'firestone':
-					case 'icestone':
-					case 'leafstone':
-					case 'magmarizer':
-					case 'moonstone':
-					case 'ovalstone':
-					case 'prismscale':
-					case 'protector':
-					case 'reapercloth':
-					case 'sachet':
-					case 'shinystone':
-					case 'sunstone':
-					case 'thunderstone':
-					case 'upgrade':
-					case 'waterstone':
-					case 'whippeddream':
-					case 'bottlecap':
-					case 'goldbottlecap':
-					case 'galaricacuff':
-					case 'chippedpot':
-					case 'crackedpot':
-					case 'galaricawreath':
-					case 'auspiciousarmor':
-					case 'maliciousarmor':
-					case 'masterpieceteacup':
-					case 'metalalloy':
-					case 'unremarkableteacup':
-					case 'bignugget':
+			}
+			switch (id) {
+				// mainstays
+				case 'choiceband':
+				case 'choicespecs':
+				case 'eviolite':
+					greatItems.push(id);
+					break;
+				// great everywhere but metronome
+				case 'leftovers':
+				case 'lifeorb':
+				case 'choicescarf':
+				case 'assaultvest':
+				case 'focussash':
+				case 'powerherb':
+				case 'rockyhelmet':
+					greatItems.push(id)
+					break;
+				// just singles
+				case 'airballoon':
+				case 'loadeddice':
+				case 'heavydutyboots':
+				case 'expertbelt':
+				case 'salacberry':
+					if (genTable.formatType === "doubles") goodItems.push(id);
+					else greatItems.push(id);
+					break;
+				// just doubles
+				case 'safetygoggles':
+				case 'ejectbutton':
+				case 'ejectpack':
+					if (genTable.formatType === "doubles") greatItems.push(id);
+					else goodItems.push(id);
+					break;
+				// doubles + metronome
+				case 'covertcloak':
+				case 'clearamulet':
+				case 'weaknesspolicy':
+					if (genTable.formatType === "doubles") greatItems.push(id);
+					else goodItems.push(id);
+					break;
+				// metronome only
+				case 'mirrorherb':
+					goodItems.push(id);
+					break;
+				// generation specific
+				case 'mentalherb':
+					if (Dex.mod(gen).data.Scripts.gen > 4) greatItems.push(id);
+					else poorItems.push(id);
+					break;
+				case 'lumberry':
+					if (Dex.mod(gen).data.Scripts.gen === 2 || Dex.mod(gen).data.Scripts.gen > 6) goodItems.push(id);
+					else greatItems.push(id);
+					break;
+				case 'sitrusberry':
+					if (Dex.mod(gen).data.Scripts.gen > 3 && (Dex.mod(gen).data.Scripts.gen < 7 || genTable.formatType === "doubles")) greatItems.push(id);
+					else if (Dex.mod(gen).data.Scripts.gen > 6) goodItems.push(id);
+					else poorItems.push(id);
+					break;
+				case 'aguavberry':
+				case 'figyberry':
+				case 'iapapaberry':
+				case 'magoberry':
+				case 'wikiberry':
+					if (Dex.mod(gen).data.Scripts.gen === 7) greatItems.push(id);
+					else if (Dex.mod(gen).data.Scripts.gen >= 8) goodItems.push(id);
+					else poorItems.push(id);
+					break;
+				case 'berryjuice':
+					if (Dex.mod(gen).data.Scripts.gen === 2) poorItems.push(id);
+					else goodItems.push(id);
+					break;
+				case 'dragonfang':
+					if (Dex.mod(gen).data.Scripts.gen === 2) badItems.push(id);
+					else goodItems.push(id);
+					break;
+				case 'dragonscale':
+					if (Dex.mod(gen).data.Scripts.gen === 2) goodItems.push(id);
+					else badItems.push(id);
+					break;
+				case 'mail':
+					if (Dex.mod(gen).data.Scripts.gen >= 6) unreleasedItems.push(id);
+					else goodItems.push(id);
+					break;
+				// Legendaries
+				case 'adamantorb':
+				case 'griseousorb':
+				case 'lustrousorb':
+				case 'blueorb':
+				case 'redorb':
+				case 'souldew':
+				// falls through
+				// Other
+				case 'leek':
+				case 'stick':
+				case 'thickclub':
+				case 'lightball':
+				case 'luckypunch':
+				case 'quickpowder':
+				case 'metalpowder':
+				case 'deepseascale':
+				case 'deepseatooth':
+					specificItems.push(id);
+					break;
+				// Fling-only
+				case 'rarebone':
+				case 'belueberry':
+				case 'blukberry':
+				case 'cornnberry':
+				case 'durinberry':
+				case 'hondewberry':
+				case 'magostberry':
+				case 'nanabberry':
+				case 'nomelberry':
+				case 'pamtreberry':
+				case 'pinapberry':
+				case 'pomegberry':
+				case 'qualotberry':
+				case 'rabutaberry':
+				case 'razzberry':
+				case 'spelonberry':
+				case 'tamatoberry':
+				case 'watmelberry':
+				case 'wepearberry':
+				case 'energypowder':
+				case 'electirizer':
+				case 'oldamber':
+				case 'dawnstone':
+				case 'dubiousdisc':
+				case 'duskstone':
+				case 'firestone':
+				case 'icestone':
+				case 'leafstone':
+				case 'magmarizer':
+				case 'moonstone':
+				case 'ovalstone':
+				case 'prismscale':
+				case 'protector':
+				case 'reapercloth':
+				case 'sachet':
+				case 'shinystone':
+				case 'sunstone':
+				case 'thunderstone':
+				case 'upgrade':
+				case 'waterstone':
+				case 'whippeddream':
+				case 'bottlecap':
+				case 'goldbottlecap':
+				case 'galaricacuff':
+				case 'chippedpot':
+				case 'crackedpot':
+				case 'galaricawreath':
+				case 'auspiciousarmor':
+				case 'maliciousarmor':
+				case 'masterpieceteacup':
+				case 'metalalloy':
+				case 'unremarkableteacup':
+				case 'bignugget':
+					badItems.push(id);
+					break;
+				// outclassed items
+				case 'aspearberry':
+				case 'bindingband':
+				case 'cheriberry':
+				case 'destinyknot':
+				case 'enigmaberry':
+				case 'floatstone':
+				case 'ironball':
+				case 'jabocaberry':
+				case 'oranberry':
+				case 'machobrace':
+				case 'pechaberry':
+				case 'persimberry':
+				case 'poweranklet':
+				case 'powerband':
+				case 'powerbelt':
+				case 'powerbracer':
+				case 'powerlens':
+				case 'powerweight':
+				case 'rawstberry':
+				case 'ringtarget':
+				case 'rowapberry':
+				case 'bigroot':
+				case 'focusband':
+				// gen 2
+				case 'psncureberry':
+				case 'przcureberry':
+				case 'burntberry':
+				case 'bitterberry':
+				case 'iceberry':
+				case 'berry':
+					poorItems.push(id);
+					break;
+				default:
+					if (
+						item.name.endsWith(" Ball") || item.name.endsWith(" Fossil") || item.name.startsWith("Fossilized ") ||
+						item.name.endsWith(" Sweet") || item.name.endsWith(" Apple")
+					) {
 						badItems.push(id);
-						break;
-					// outclassed items
-					case 'aspearberry':
-					case 'bindingband':
-					case 'cheriberry':
-					case 'destinyknot':
-					case 'enigmaberry':
-					case 'floatstone':
-					case 'ironball':
-					case 'jabocaberry':
-					case 'oranberry':
-					case 'machobrace':
-					case 'pechaberry':
-					case 'persimberry':
-					case 'poweranklet':
-					case 'powerband':
-					case 'powerbelt':
-					case 'powerbracer':
-					case 'powerlens':
-					case 'powerweight':
-					case 'rawstberry':
-					case 'ringtarget':
-					case 'rowapberry':
-					case 'bigroot':
-					case 'focusband':
-					// gen 2
-					case 'psncureberry':
-					case 'przcureberry':
-					case 'burntberry':
-					case 'bitterberry':
-					case 'iceberry':
-					case 'berry':
-						poorItems.push(id);
-						break;
-					default:
-						if (
-							item.name.endsWith(" Ball") || item.name.endsWith(" Fossil") || item.name.startsWith("Fossilized ") ||
-							item.name.endsWith(" Sweet") || item.name.endsWith(" Apple")
-						) {
+					} else if (item.name.startsWith("TR")) {
+						if (genTable.bonusRules !== undefined && 'Broken Record' in genTable.bonusRules) {
+							console.log("Broken Record Spotted");
+							goodItems.push(id);
+						}
+						else {
 							badItems.push(id);
-						} else if (item.name.startsWith("TR")) {
-							if (genTable.bonusRules !== undefined && 'Broken Record' in genTable.bonusRules) {
-								console.log("Broken Record Spotted");
-								goodItems.push(id);
-							}
-							else {
-								badItems.push(id);
-							}
-						} else if (item.name.endsWith(" Gem") && item.name !== "Normal Gem") {
-							if (Dex.mod(gen).data.Scripts.gen >= 6) {
-								unreleasedItems.push(id);
-							} else {
-								goodItems.push(id);
-							}
-						} else if (item.name.endsWith(" Drive")) {
-							specificItems.push(id);
-						} else if (item.name.endsWith(" Memory")) {
-							specificItems.push(id);
-						} else if (item.name.startsWith("Rusted")) {
-							specificItems.push(id);
-						} else if (item.itemUser) {
-							specificItems.push(id);
-						} else if (item.megaStone) {
-							specificItems.push(id);
+						}
+					} else if (item.name.endsWith(" Gem") && item.name !== "Normal Gem") {
+						if (Dex.mod(gen).data.Scripts.gen >= 6) {
+							unreleasedItems.push(id);
 						} else {
 							goodItems.push(id);
 						}
-				}
+					} else if (item.name.endsWith(" Drive")) {
+						specificItems.push(id);
+					} else if (item.name.endsWith(" Memory")) {
+						specificItems.push(id);
+					} else if (item.name.startsWith("Rusted")) {
+						specificItems.push(id);
+					} else if (item.itemUser) {
+						specificItems.push(id);
+					} else if (item.megaStone) {
+						specificItems.push(id);
+					} else {
+						goodItems.push(id);
+					}
 			}
-			items.push(...greatItems);
-			items.push(...goodItems);
-			items.push(...specificItems);
-			items.push(...poorItems);
-			items.push(...badItems);
-			items.push(...unreleasedItems);
 		}
+		items.push(...greatItems);
+		items.push(...goodItems);
+		items.push(...specificItems);
+		items.push(...poorItems);
+		items.push(...badItems);
+		items.push(...unreleasedItems);
 	}
 
 	//
@@ -590,57 +628,59 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	const gen3HMs = new Set(['cut', 'fly', 'surf', 'strength', 'flash', 'rocksmash', 'waterfall', 'dive']);
 	const gen4HMs = new Set(['cut', 'fly', 'surf', 'strength', 'rocksmash', 'waterfall', 'rockclimb']);
 
-	for (const gen of BuilderMods) {
-		for (const tableKey in Dex.mod(gen).data.Scripts.teambuilders) {
-			const ModLearnsets = Dex.mod(gen).data.Learnsets;
-			for (const id in ModLearnsets) {
-				if (BattleTeambuilderTable[tableKey].overrideTier[id] === "Illegal") {
-					continue;
+	for (const tableKey of Object.keys(BattleTeambuilderTable)) {
+		if (tableKey === "Formats") {
+			continue;
+		}
+		const gen = BattleTeambuilderTable[tableKey]["mod"];
+		const ModLearnsets = Dex.mod(gen).data.Learnsets;
+		for (const id in ModLearnsets) {
+			if (BattleTeambuilderTable[tableKey].overrideTier[id] === "Illegal") {
+				continue;
+			}
+			const learnset = ModLearnsets[id].learnset;
+			if (!learnset) continue;
+			BattleTeambuilderTable[tableKey].learnsets[id] = {};
+			for (const moveid in learnset) {
+				const gens = learnset[moveid].map(x => Number(x[0]));
+				const minGen = Math.min(...gens);
+
+				if (minGen <= 4 && (gen3HMs.has(moveid) || gen4HMs.has(moveid))) {
+					let legalGens = '';
+					let available = false;
+
+					if (minGen === 3) {
+						legalGens += '3';
+						available = true;
+					}
+					if (available) available = !gen3HMs.has(moveid);
+
+					if (available || gens.includes(4)) {
+						legalGens += '4';
+						available = true;
+					}
+					if (available) available = !gen4HMs.has(moveid);
+
+					const minUpperGen = available ? 5 : Math.min(
+						...gens.filter(gen => gen > 4)
+					);
+					legalGens += '0123456789'.slice(minUpperGen);
+					BattleTeambuilderTable[tableKey].learnsets[id][moveid] = legalGens;
+				} else {
+					BattleTeambuilderTable[tableKey].learnsets[id][moveid] = '0123456789'.slice(minGen);
 				}
-				const learnset = ModLearnsets[id].learnset;
-				if (!learnset) continue;
-				BattleTeambuilderTable[tableKey].learnsets[id] = {};
-				for (const moveid in learnset) {
-					const gens = learnset[moveid].map(x => Number(x[0]));
-					const minGen = Math.min(...gens);
 
-					if (minGen <= 4 && (gen3HMs.has(moveid) || gen4HMs.has(moveid))) {
-						let legalGens = '';
-						let available = false;
-
-						if (minGen === 3) {
-							legalGens += '3';
-							available = true;
-						}
-						if (available) available = !gen3HMs.has(moveid);
-
-						if (available || gens.includes(4)) {
-							legalGens += '4';
-							available = true;
-						}
-						if (available) available = !gen4HMs.has(moveid);
-
-						const minUpperGen = available ? 5 : Math.min(
-							...gens.filter(gen => gen > 4)
-						);
-						legalGens += '0123456789'.slice(minUpperGen);
-						BattleTeambuilderTable[tableKey].learnsets[id][moveid] = legalGens;
-					} else {
-						BattleTeambuilderTable[tableKey].learnsets[id][moveid] = '0123456789'.slice(minGen);
-					}
-
-					if (gens.indexOf(6) >= 0) {
-						BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'p';
-					}
-					if (gens.indexOf(7) >= 0 && learnset[moveid].some(x => x[0] === '7' && x !== '7V')) {
-						BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'q';
-					}
-					if (gens.indexOf(8) >= 0 && learnset[moveid].some(x => x[0] === '8' && x !== '8V')) {
-						BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'g';
-					}
-					if (gens.indexOf(9) >= 0 && learnset[moveid].some(x => x[0] === '9' && x !== '9V')) {
-						BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'a';
-					}
+				if (gens.indexOf(6) >= 0) {
+					BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'p';
+				}
+				if (gens.indexOf(7) >= 0 && learnset[moveid].some(x => x[0] === '7' && x !== '7V')) {
+					BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'q';
+				}
+				if (gens.indexOf(8) >= 0 && learnset[moveid].some(x => x[0] === '8' && x !== '8V')) {
+					BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'g';
+				}
+				if (gens.indexOf(9) >= 0 && learnset[moveid].some(x => x[0] === '9' && x !== '9V')) {
+					BattleTeambuilderTable[tableKey].learnsets[id][moveid] += 'a';
 				}
 			}
 		}
@@ -660,64 +700,64 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	// Mods
 	//
 
-	for (const mod of BuilderMods) {
-		const modDex = Dex.mod(mod);
+	for (const tableKey of Object.keys(BattleTeambuilderTable)) {
+		if (tableKey === "Formats") {
+			continue;
+		}
+		const gen = BattleTeambuilderTable[tableKey]["mod"];
+		const modDex = Dex.mod(gen);
 		const modData = modDex.data;
 		const parentDex = Dex.forGen(modDex.gen);
 
-		for (const tableKey in Dex.mod(mod).data.Scripts.teambuilders) {
-			const genTable = Dex.mod(mod).data.Scripts.teambuilders[tableKey];
-			const overrideSpeciesData = {};
-			BattleTeambuilderTable[tableKey].overrideSpeciesData = overrideSpeciesData;
-			for (const id in modData.Pokedex) {
-				const modEntry = modDex.species.get(id);
-				const parentEntry = parentDex.species.get(id);
-				for (const key of overrideSpeciesKeys) {
-					if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
-						if (!overrideSpeciesData[id]) overrideSpeciesData[id] = {};
-						overrideSpeciesData[id][key] = modEntry[key];
-					}
+		const overrideSpeciesData = {};
+		BattleTeambuilderTable[tableKey].overrideSpeciesData = overrideSpeciesData;
+		for (const id in modData.Pokedex) {
+			const modEntry = modDex.species.get(id);
+			const parentEntry = parentDex.species.get(id);
+			for (const key of overrideSpeciesKeys) {
+				if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
+					if (!overrideSpeciesData[id]) overrideSpeciesData[id] = {};
+					overrideSpeciesData[id][key] = modEntry[key];
 				}
 			}
+		}
 
-			const overrideMoveData = {};
-			BattleTeambuilderTable[tableKey].overrideMoveData = overrideMoveData;
-			for (const id in modData.Moves) {
-				const modEntry = modDex.moves.get(id);
-				const parentEntry = parentDex.moves.get(id);
-				for (const key of overrideMoveKeys) {
-					if (key === 'category' && modDex.gen <= 3) continue;
-					if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
-						if (!overrideMoveData[id]) overrideMoveData[id] = {};
-						overrideMoveData[id][key] = modEntry[key];
-					}
+		const overrideMoveData = {};
+		BattleTeambuilderTable[tableKey].overrideMoveData = overrideMoveData;
+		for (const id in modData.Moves) {
+			const modEntry = modDex.moves.get(id);
+			const parentEntry = parentDex.moves.get(id);
+			for (const key of overrideMoveKeys) {
+				if (key === 'category' && modDex.gen <= 3) continue;
+				if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
+					if (!overrideMoveData[id]) overrideMoveData[id] = {};
+					overrideMoveData[id][key] = modEntry[key];
 				}
 			}
+		}
 
-			const overrideAbilityData = {};
-			BattleTeambuilderTable[tableKey].overrideAbilityData = overrideAbilityData;
-			for (const id in modData.Abilities) {
-				const modEntry = modDex.abilities.get(id);
-				const parentEntry = parentDex.abilities.get(id);
-				for (const key of overrideAbilityKeys) {
-					if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
-						if (!overrideAbilityData[id]) overrideAbilityData[id] = {};
-						overrideAbilityData[id][key] = modEntry[key];
-					}
+		const overrideAbilityData = {};
+		BattleTeambuilderTable[tableKey].overrideAbilityData = overrideAbilityData;
+		for (const id in modData.Abilities) {
+			const modEntry = modDex.abilities.get(id);
+			const parentEntry = parentDex.abilities.get(id);
+			for (const key of overrideAbilityKeys) {
+				if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
+					if (!overrideAbilityData[id]) overrideAbilityData[id] = {};
+					overrideAbilityData[id][key] = modEntry[key];
 				}
 			}
+		}
 
-			const overrideItemData = {};
-			BattleTeambuilderTable[tableKey].overrideItemData = overrideItemData;
-			for (const id in modData.Items) {
-				const modEntry = modDex.items.get(id);
-				const parentEntry = parentDex.items.get(id);
-				for (const key of overrideItemKeys) {
-					if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
-						if (!overrideItemData[id]) overrideItemData[id] = {};
-						overrideItemData[id][key] = modEntry[key];
-						console.log(overrideItemData);
-					}
+		const overrideItemData = {};
+		BattleTeambuilderTable[tableKey].overrideItemData = overrideItemData;
+		for (const id in modData.Items) {
+			const modEntry = modDex.items.get(id);
+			const parentEntry = parentDex.items.get(id);
+			for (const key of overrideItemKeys) {
+				if (JSON.stringify(modEntry[key]) !== JSON.stringify(parentEntry[key])) {
+					if (!overrideItemData[id]) overrideItemData[id] = {};
+					overrideItemData[id][key] = modEntry[key];
 				}
 			}
 		}
@@ -726,6 +766,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	buf += `exports.BattleTeambuilderTable = JSON.parse('${JSON.stringify(BattleTeambuilderTable).replace(/['\\]/g, "\\$&")}');\n\n`;
 
 	fs.writeFileSync('play.pokemonshowdown.com/data/teambuilder-tables.js', buf);
+	fs.writeFileSync('play.pokemonshowdown.com/data/teambuilder-tables.json', JSON.stringify(BattleTeambuilderTable).replace(/['\\]/g, "\\$&"));
 }
 
 console.log("DONE");
@@ -741,7 +782,6 @@ process.stdout.write("Building `data/pokedex.js`... ");
 	for (const id in Pokedex) {
 		const entry = Pokedex[id];
 		if (Dex.data.FormatsData[id]) {
-			// console.log('formatsentry:' + id);
 			const formatsEntry = Dex.data.FormatsData[id];
 			if (formatsEntry.tier) entry.tier = formatsEntry.tier;
 			if (formatsEntry.isNonstandard) entry.isNonstandard = formatsEntry.isNonstandard;
@@ -753,7 +793,6 @@ process.stdout.write("Building `data/pokedex.js`... ");
 	for (const modDex in Dex.dexes) {
 		if (Dex.mod(modDex).data.Scripts.teambuilders) {
 			BuilderMods.push(modDex);
-			console.log(modDex);
 		}
 	}
 	for (const gen of BuilderMods) {
@@ -788,6 +827,24 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 		if (move.shortDesc) Moves[id].shortDesc = move.shortDesc;
 		if (move.basePowerCallback) Moves[id].basePowerCallback = true;
 	}
+
+	const BuilderMods = [];
+	for (const modDex in Dex.dexes) {
+		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+			BuilderMods.push(modDex);
+		}
+	}
+	for (const gen of BuilderMods) {
+		for (const id in Dex.mod(gen).data.Moves) {
+			if (id in Moves) {
+				continue;
+			}
+			else {
+				Moves[id] = Dex.mod(gen).data.Moves[id];
+			}
+		}
+	}
+
 	const buf = 'exports.BattleMovedex = ' + es3stringify(Moves) + ';';
 	fs.writeFileSync('play.pokemonshowdown.com/data/moves.js', buf);
 	fs.writeFileSync('play.pokemonshowdown.com/data/moves.json', JSON.stringify(Moves));
@@ -804,6 +861,23 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 		if (item.desc) Items[id].desc = item.desc;
 		if (item.shortDesc) Items[id].shortDesc = item.shortDesc;
 	}
+
+	const BuilderMods = [];
+	for (const modDex in Dex.dexes) {
+		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+			BuilderMods.push(modDex);
+		}
+	}
+	for (const gen of BuilderMods) {
+		for (const id in Dex.mod(gen).data.Items) {
+			if (id in Items) {
+				continue;
+			}
+			else {
+				Items[id] = Dex.mod(gen).data.Items[id];
+			}
+		}
+	}
 	const buf = 'exports.BattleItems = ' + es3stringify(Items) + ';';
 	fs.writeFileSync('play.pokemonshowdown.com/data/items.js', buf);
 }
@@ -818,6 +892,23 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 		const ability = Dex.abilities.get(Abilities[id].name);
 		if (ability.desc) Abilities[id].desc = ability.desc;
 		if (ability.shortDesc) Abilities[id].shortDesc = ability.shortDesc;
+	}
+
+	const BuilderMods = [];
+	for (const modDex in Dex.dexes) {
+		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+			BuilderMods.push(modDex);
+		}
+	}
+	for (const gen of BuilderMods) {
+		for (const id in Dex.mod(gen).data.Abilities) {
+			if (id in Abilities) {
+				continue;
+			}
+			else {
+				Abilities[id] = Dex.mod(gen).data.Abilities[id];
+			}
+		}
 	}
 	const buf = 'exports.BattleAbilities = ' + es3stringify(Abilities) + ';';
 	fs.writeFileSync('play.pokemonshowdown.com/data/abilities.js', buf);

@@ -94,18 +94,15 @@ export class TeamEditorState extends PSModel {
 		this.dex = Dex.forFormat(formatid);
 		this.gen = this.dex.gen;
 
-		let currentBuilder = "gen9standard";
+		let currentBuilder = "gen9";
 		this.defaultLevel = 100;
 
-		for (const builderTable in window.BattleTeambuilderTable) { // NewerGenChange
-			if (formatid in window.BattleTeambuilderTable[builderTable].formatNames) {
-				currentBuilder = builderTable;
-				break;
-			}
+		if (formatid in window.BattleTeambuilderTable.Formats) {
+			currentBuilder = window.BattleTeambuilderTable.Formats[formatid].mod;
 		}
 
-		if (formatid in window.BattleTeambuilderTable[currentBuilder].formatNames) {
-			if (window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].hasOwnProperty("bonusRules")) {
+		if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid]) {
+			if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid].hasOwnProperty("bonusRules")) {
 				if ("AAA" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
 					this.abilityLegality = 'hackmons';
 				} else {
@@ -126,6 +123,7 @@ export class TeamEditorState extends PSModel {
 			this.defaultLevel = window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].defaultLevel;
 		}
 	}
+
 	setSearchType(type: SearchType, i: number, value?: string) {
 		const set = this.sets[i];
 		this.search.setType(type, this.format, set);
