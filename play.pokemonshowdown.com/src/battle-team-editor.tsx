@@ -94,36 +94,36 @@ export class TeamEditorState extends PSModel {
 		this.dex = Dex.forFormat(formatid);
 		this.gen = this.dex.gen;
 
-		format = toID(format).slice(4);
-		this.isLetsGo = formatid.includes('letsgo');
-		this.isNatDex = formatid.includes('nationaldex') || formatid.includes('natdex');
-		this.isBDSP = formatid.includes('bdsp');
-		if (formatid.includes('almostanyability') || formatid.includes('aaa')) {
-			this.abilityLegality = 'hackmons';
-		} else {
-			this.abilityLegality = 'normal';
-		}
-		if (formatid.includes('hackmons') || formatid.includes('bh')) {
-			this.formeLegality = 'hackmons';
-			this.abilityLegality = 'hackmons';
-		} else if (formatid.includes('metronome') || formatid.includes('customgame')) {
-			this.formeLegality = 'custom';
-			this.abilityLegality = 'hackmons';
-		} else {
-			this.formeLegality = 'normal';
+		let currentBuilder = "gen9";
+		this.defaultLevel = 100;
+
+		if (formatid in window.BattleTeambuilderTable.Formats) {
+			currentBuilder = window.BattleTeambuilderTable.Formats[formatid].mod;
 		}
 
-		this.defaultLevel = 100;
-		if (
-			formatid.includes('vgc') || formatid.includes('bss') || formatid.includes('ultrasinnohclassic') ||
-			formatid.includes('battlespot') || formatid.includes('battlestadium') || formatid.includes('battlefestival')
-		) {
-			this.defaultLevel = 50;
-		}
-		if (formatid.includes('lc')) {
-			this.defaultLevel = 5;
+		if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid]) {
+			if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid].hasOwnProperty("bonusRules")) {
+				if ("AAA" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+					this.abilityLegality = 'hackmons';
+				} else {
+					this.abilityLegality = 'normal';
+				}
+				if ("Hackmons" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules ||
+					"Balanced Hackmons" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+					this.formeLegality = 'hackmons';
+					this.abilityLegality = 'hackmons';
+				} else if ("Metronome" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules ||
+					"Custom Game" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+					this.formeLegality = 'custom';
+					this.abilityLegality = 'hackmons';
+				} else {
+					this.formeLegality = 'normal';
+				}
+			}
+			this.defaultLevel = window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].defaultLevel;
 		}
 	}
+
 	setSearchType(type: SearchType, i: number, value?: string) {
 		const set = this.sets[i];
 		this.search.setType(type, this.format, set);
@@ -455,7 +455,8 @@ export class TeamEditorState extends PSModel {
 		}
 	}
 	canAdd(): boolean {
-		return this.sets.length < 6 || this.team.isBox;
+		return (this.team.format === "gen9natalieused" && this.sets.length < 8) ||
+			(this.team.format !== "gen9natalieused" && this.sets.length < 6) || this.team.isBox;
 	}
 	getHPType(set: Dex.PokemonSet): Dex.TypeName {
 		if (set.hpType) return set.hpType as Dex.TypeName;
@@ -699,7 +700,7 @@ export class TeamEditorState extends PSModel {
 		return Math.trunc(val);
 	}
 	export(compat?: boolean) {
-		return Teams.export(this.sets, this.dex, !compat);
+		return Teams.export(this.sets, this.dex, compat);
 	}
 	import(value: string) {
 		this.sets = Teams.import(value);
@@ -1746,9 +1747,9 @@ class TeamTextbox extends preact.Component<{
 				<button class="button" onClick={this.copyAll}>
 					<i class="fa fa-copy" aria-hidden></i> Copy
 				</button> {}
-				<label class="checkbox inline">
-					<input type="checkbox" name="compat" onChange={this.changeCompat} /> Old export format
-				</label>
+				{/*<label class="checkbox inline">*/}
+				{/*	<input type="checkbox" name="compat" onChange={this.changeCompat}/> New export format*/}
+				{/*</label>*/}
 			</p>
 			<div class="teameditor-text">
 				<textarea

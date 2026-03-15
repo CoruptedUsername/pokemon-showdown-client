@@ -20,7 +20,7 @@
 			}
 		},
 		focus: function () {
-			if (this.curTeam) {
+			if (this.curTeam) { // OldGenChange
 				this.curTeam.iconCache = '!';
 				this.curTeam.gen = this.getGen(this.curTeam.format);
 				this.curTeam.dex = Dex.forGen(this.curTeam.gen);
@@ -30,8 +30,25 @@
 				if (this.curTeam.format.includes('bdsp')) {
 					this.curTeam.dex = Dex.mod('gen8bdsp');
 				}
-				if (this.curTeam.format.includes('legends')) {
-					this.curTeam.dex = Dex.mod('gen9legendsou');
+				if (this.curTeam.format.includes('donotuse')) {
+					if (this.curTeam.format.includes('legacy')) {
+						this.curTeam.dex = Dex.mod('gen9dnulegacy');
+					}
+					else {
+						this.curTeam.dex = Dex.mod('gen9dnu');
+					}
+				}
+				if (this.curTeam.format.includes('regionalvariantscup')) {
+					this.curTeam.dex = Dex.mod('gen9rvc');
+				}
+				if (this.curTeam.format.includes('natalieused')) {
+					this.curTeam.dex = Dex.mod('gen9natu');
+				}
+				if (this.curTeam.format.includes('firstgymused')) {
+					this.curTeam.dex = Dex.mod('gen8fgu');
+				}
+				if (this.curTeam.format.includes('threemusketeers')) {
+					this.curTeam.dex = Dex.mod('gen93m');
 				}
 				Storage.activeSetList = this.curSetList;
 			}
@@ -742,7 +759,7 @@
 		reloadTeamsFolder: function () {
 			Storage.nwLoadTeams();
 		},
-		edit: function (i) {
+		edit: function (i) { // OldGenChange
 			this.teamScrollPos = this.$('.teampane').scrollTop();
 			if (i && i.currentTarget) {
 				i = $(i.currentTarget).data('value');
@@ -758,8 +775,28 @@
 			if (this.curTeam.format.includes('bdsp')) {
 				this.curTeam.dex = Dex.mod('gen8bdsp');
 			}
-			if (this.curTeam.format.includes('legends')) {
-				this.curTeam.dex = Dex.mod('gen9legendsou');
+			if (this.curTeam.format.includes('donotuse')) {
+				if (this.curTeam.format.includes('legacy')) {
+					this.curTeam.dex = Dex.mod('gen9dnulegacy');
+				}
+				else {
+					this.curTeam.dex = Dex.mod('gen9dnu');
+				}
+			}
+			if (this.curTeam.format.includes('regionalvariantscup')) {
+				this.curTeam.dex = Dex.mod('gen9rvc');
+			}
+			if (this.curTeam.format.includes('natalieused')) {
+				this.curTeam.dex = Dex.mod('gen9natu');
+			}
+			if (this.curTeam.format.includes('cavemanused')) {
+				this.curTeam.dex = Dex.mod('gen9cmu');
+			}
+			if (this.curTeam.format.includes('firstgymused')) {
+				this.curTeam.dex = Dex.mod('gen8fgu');
+			}
+			if (this.curTeam.format.includes('threemusketeers')) {
+				this.curTeam.dex = Dex.mod('gen93m');
 			}
 			Storage.activeSetList = this.curSetList = Storage.unpackTeam(this.curTeam.team);
 			this.curTeamIndex = i;
@@ -1604,7 +1641,7 @@
 				self.changeFormat(newFormat);
 			} });
 		},
-		changeFormat: function (format) {
+		changeFormat: function (format) { // OldGenChange
 			this.curTeam.format = format;
 			this.curTeam.gen = this.getGen(this.curTeam.format);
 			this.curTeam.dex = Dex.forGen(this.curTeam.gen);
@@ -1614,8 +1651,28 @@
 			if (this.curTeam.format.includes('bdsp')) {
 				this.curTeam.dex = Dex.mod('gen8bdsp');
 			}
-			if (this.curTeam.format.includes('legends')) {
-				this.curTeam.dex = Dex.mod('gen9legendsou');
+			if (this.curTeam.format.includes('donotuse')) {
+				if (this.curTeam.format.includes('legacy')) {
+					this.curTeam.dex = Dex.mod('gen9dnulegacy');
+				}
+				else {
+					this.curTeam.dex = Dex.mod('gen9dnu');
+				}
+			}
+			if (this.curTeam.format.includes('regionalvariantscup')) {
+				this.curTeam.dex = Dex.mod('gen9rvc');
+			}
+			if (this.curTeam.format.includes('natalieused')) {
+				this.curTeam.dex = Dex.mod('gen9natu');
+			}
+			if (this.curTeam.format.includes('cavemanused')) {
+				this.curTeam.dex = Dex.mod('gen9cmu');
+			}
+			if (this.curTeam.format.includes('firstgymused')) {
+				this.curTeam.dex = Dex.mod('gen8fgu');
+			}
+			if (this.curTeam.format.includes('threemusketeers')) {
+				this.curTeam.dex = Dex.mod('gen93m');
 			}
 			this.save();
 			if (this.curTeam.gen === 5 && !Dex.loadedSpriteData['bw']) Dex.loadSpriteData('bw');
