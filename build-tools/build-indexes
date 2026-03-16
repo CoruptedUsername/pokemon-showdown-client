@@ -332,6 +332,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		const items = [];
 		const formatSlices = {};
 
+
 		BattleTeambuilderTable[tableKey].learnsets = {};
 		BattleTeambuilderTable[tableKey].tiers = tiers;
 		BattleTeambuilderTable[tableKey].items = items;
