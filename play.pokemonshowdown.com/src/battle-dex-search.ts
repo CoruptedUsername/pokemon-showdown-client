@@ -1284,174 +1284,178 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 		if (itemid === 'glalitite') abilityid = 'refrigerate' as ID;
 
 		switch (id) {
-			case 'fakeout': case 'flamecharge': case 'nuzzle': case 'poweruppunch': case 'trailblaze':
-				return abilityid !== 'sheerforce';
-			case 'solarbeam': case 'solarblade':
-				return ['desolateland', 'drought', 'chlorophyll', 'orichalcumpulse'].includes(abilityid) || itemid === 'powerherb';
-			case 'dynamicpunch': case 'grasswhistle': case 'inferno': case 'sing':
-				return abilityid === 'noguard';
-			case 'heatcrash': case 'heavyslam':
-				return species.weightkg >= (species.evos ? 75 : 130);
-			case 'aerialace':
-				return ['technician', 'toughclaws'].includes(abilityid) && !moves.includes('bravebird');
-			case 'ancientpower':
-				return ['serenegrace', 'technician'].includes(abilityid) || !moves.includes('powergem');
-			case 'aquajet':
-				return !moves.includes('jetpunch');
-			case 'aurawheel':
-				return species.baseSpecies === 'Morpeko';
-			case 'axekick':
-				return !moves.includes('highjumpkick');
-			case 'barrier':
-				return !moves.includes('acidarmor');
-			case 'bellydrum':
-				return moves.includes('aquajet') || moves.includes('jetpunch') || moves.includes('extremespeed') ||
-					['iceface', 'unburden'].includes(abilityid);
-			case 'bulletseed':
-				return ['skilllink', 'technician'].includes(abilityid);
-			case 'chillingwater':
-				return !moves.includes('scald');
-			case 'counter': case 'mirrorcoat':
-				return species.baseStats.hp >= 65;
-			case 'dazzlinggleam':
-				return !moves.includes('alluringvoice') || this.formatType?.includes('doubles');
-			case 'darkvoid':
-				return dex.gen < 7;
-			case 'dualwingbeat':
-				return abilityid === 'technician' || !moves.includes('drillpeck');
-			case 'electroshot':
-				return true;
-			case 'feint':
-				return abilityid === 'refrigerate';
-			case 'futuresight':
-				return dex.gen > 5;
-			case 'grassyglide':
-				return abilityid === 'grassysurge';
-			case 'gyroball':
-				return species.baseStats.spe <= 60;
-			case 'headbutt':
-				return abilityid === 'serenegrace';
-			case 'hex':
-				return !moves.includes('infernalparade');
-			case 'hiddenpowerelectric':
-				return !(dex.gen < 4 && moves.includes('thunderpunch')) && !moves.includes('thunderbolt');
-			case 'hiddenpowerfighting':
-				return !(dex.gen < 4 && moves.includes('brickbreak')) && !moves.includes('aurasphere') && !moves.includes('focusblast');
-			case 'hiddenpowerfire':
-				return !(dex.gen < 4 && moves.includes('firepunch')) && !moves.includes('flamethrower') &&
-					!moves.includes('mysticalfire') && !moves.includes('burningjealousy');
-			case 'hiddenpowergrass':
-				return !(dex.gen < 4 && moves.includes('leafblade')) ||
-					(dex.gen > 3 && !moves.includes('energyball') && !moves.includes('grassknot') && !moves.includes('gigadrain'));
-			case 'hiddenpowerice':
-				return !moves.includes('icebeam') && (dex.gen < 4 && !moves.includes('icepunch')) ||
-					(dex.gen > 5 && !moves.includes('aurorabeam') && !moves.includes('glaciate'));
-			case 'hiddenpowerflying':
-				return dex.gen < 4 && !moves.includes('drillpeck');
-			case 'hiddenpowerbug':
-				return dex.gen < 4 && !moves.includes('megahorn');
-			case 'hiddenpowerpsychic':
-				return species.baseSpecies === 'Unown';
-			case 'hyperspacefury':
-				return species.id === 'hoopaunbound';
-			case 'hypnosis':
-				return (dex.gen < 4 && !moves.includes('sleeppowder')) || (dex.gen > 6 && abilityid === 'baddreams');
-			case 'icepunch':
-				return !moves.includes('icespinner') || ['sheerforce', 'ironfist'].includes(abilityid) || itemid === 'punchingglove';
-			case 'iciclecrash':
-				return !moves.includes('mountaingale');
-			case 'iciclespear':
-				return dex.gen > 3;
-			case 'icywind':
-				// Keldeo needs Hidden Power for Electric/Ghost
-				return species.baseSpecies === 'Keldeo' || this.isDoubles;
-			case 'infestation':
-				return moves.includes('stickyweb');
-			case 'irondefense':
-				return !moves.includes('acidarmor') && !moves.includes('barrier');
-			case 'irontail':
-				return dex.gen > 5 && !moves.includes('ironhead') && !moves.includes('gunkshot') && !moves.includes('poisonjab');
-			case 'jumpkick':
-				return !moves.includes('highjumpkick') && !moves.includes('axekick');
-			case 'lastresort':
-				return set && set.moves.length < 3;
-			case 'leafblade':
-				return true;
-			case 'leechlife':
-				return dex.gen > 6;
-			case 'magiccoat':
-				return dex.gen > 3;
-			case 'meteorbeam':
-				return true;
-			case 'mysticalfire':
-				return dex.gen > 6 && !moves.includes('flamethrower');
-			case 'naturepower':
-				return dex.gen === 5;
-			case 'needlearm':
-				return dex.gen < 4;
-			case 'nightslash':
-				return !moves.includes('crunch') && !(moves.includes('knockoff') && dex.gen >= 6);
-			case 'outrage':
-				return dex.gen > 3 && !moves.includes('glaiverush');
-			case 'petaldance':
-				return abilityid === 'owntempo';
-			case 'phantomforce':
-				return (!moves.includes('poltergeist') && !moves.includes('shadowclaw')) || this.isDoubles;
-			case 'poisonfang':
-				return species.types.includes('Poison') && !moves.includes('gunkshot') && !moves.includes('poisonjab');
-			case 'raindance':
-				return dex.gen < 4;
-			case 'relicsong':
-				return species.id === 'meloetta';
-			case 'refresh':
-				return !moves.includes('aromatherapy') && !moves.includes('healbell');
-			case 'risingvoltage':
-				return abilityid === 'electricsurge' || abilityid === 'hadronengine';
-			case 'rocktomb':
-				return abilityid === 'technician';
-			case 'selfdestruct':
-				return dex.gen < 5 && !moves.includes('explosion');
-			case 'shadowpunch':
-				return abilityid === 'ironfist' && !moves.includes('ragefist');
-			case 'shelter':
-				return !moves.includes('acidarmor') && !moves.includes('irondefense');
-			case 'skyuppercut':
-				return dex.gen < 4;
-			case 'smackdown':
-				return species.types.includes('Ground');
-			case 'smartstrike':
-				return species.types.includes('Steel') && !moves.includes('ironhead');
-			case 'soak':
-				return abilityid === 'unaware';
-			case 'steelwing':
-				return !moves.includes('ironhead');
-			case 'stompingtantrum':
-				return (!moves.includes('earthquake') && !moves.includes('drillrun')) || this.isDoubles;
-			case 'stunspore':
-				return !moves.includes('thunderwave');
-			case 'sunnyday':
-				return dex.gen < 4;
-			case 'technoblast':
-				return dex.gen > 5 && itemid.endsWith('drive') || itemid === 'dousedrive';
-			case 'teleport':
-				return dex.gen > 7;
-			case 'temperflare':
-				return (!moves.includes('flareblitz') && !moves.includes('pyroball') && !moves.includes('sacredfire') &&
-					!moves.includes('bitterblade') && !moves.includes('firepunch')) || this.isDoubles;
-			case 'terrainpulse': case 'waterpulse':
-				return ['megalauncher', 'technician'].includes(abilityid) && !moves.includes('originpulse');
-			case 'thief':
-				return dex.gen === 2;
-			case 'toxicspikes':
-				return abilityid !== 'toxicdebris';
-			case 'triattack':
-				return dex.gen > 3;
-			case 'trickroom':
-				return species.baseStats.spe <= 100;
-			case 'wildcharge':
-				return !moves.includes('supercellslam');
-			case 'zapcannon':
-				return abilityid === 'noguard' || (dex.gen < 4 && !moves.includes('thunderwave'));
+		case 'fakeout': case 'flamecharge': case 'nuzzle': case 'poweruppunch': case 'trailblaze':
+			return abilityid !== 'sheerforce';
+		case 'solarbeam': case 'solarblade':
+			return ['desolateland', 'drought', 'chlorophyll', 'orichalcumpulse'].includes(abilityid) || itemid === 'powerherb';
+		case 'dynamicpunch': case 'grasswhistle': case 'inferno': case 'sing':
+			return abilityid === 'noguard';
+		case 'heatcrash': case 'heavyslam':
+			return species.weightkg >= (species.evos ? 75 : 130);
+		case 'aerialace':
+			return ['technician', 'toughclaws'].includes(abilityid) && !moves.includes('bravebird');
+		case 'ancientpower':
+			return ['serenegrace', 'technician'].includes(abilityid) || !moves.includes('powergem');
+		case 'aquajet':
+			return !moves.includes('jetpunch');
+		case 'aurawheel':
+			return species.baseSpecies === 'Morpeko';
+		case 'axekick':
+			return !moves.includes('highjumpkick');
+		case 'barrier':
+			return !moves.includes('acidarmor');
+		case 'bellydrum':
+			return moves.includes('aquajet') || moves.includes('jetpunch') || moves.includes('extremespeed') ||
+				['iceface', 'unburden'].includes(abilityid);
+		case 'bulletseed':
+			return ['skilllink', 'technician'].includes(abilityid);
+		case 'chillingwater':
+			return !moves.includes('scald');
+		case 'counter': case 'mirrorcoat':
+			return species.baseStats.hp >= 65;
+		case 'dazzlinggleam':
+			return !moves.includes('alluringvoice') || this.formatType?.includes('doubles');
+		case 'darkvoid':
+			return dex.gen < 7;
+		case 'dualwingbeat':
+			return abilityid === 'technician' || !moves.includes('drillpeck');
+		case 'electroshot':
+			return true;
+		case 'feint':
+			return abilityid === 'refrigerate';
+		case 'futuresight':
+			return dex.gen > 5;
+		case 'grassyglide':
+			return abilityid === 'grassysurge';
+		case 'gyroball':
+			return species.baseStats.spe <= 60;
+		case 'headbutt':
+			return abilityid === 'serenegrace';
+		case 'hex':
+			return !moves.includes('infernalparade');
+		case 'hiddenpowerelectric':
+			return !(dex.gen < 4 && moves.includes('thunderpunch')) && !moves.includes('thunderbolt');
+		case 'hiddenpowerfighting':
+			return !(dex.gen < 4 && moves.includes('brickbreak')) && !moves.includes('aurasphere') && !moves.includes('focusblast');
+		case 'hiddenpowerfire':
+			return !(dex.gen < 4 && moves.includes('firepunch')) && !moves.includes('flamethrower') &&
+				!moves.includes('mysticalfire') && !moves.includes('burningjealousy') &&
+				!(dex.gen > 5 && moves.includes('incinerate'));
+		case 'hiddenpowergrass':
+			return !(dex.gen < 4 && moves.includes('leafblade')) ||
+				(dex.gen > 3 && !moves.includes('energyball') && !moves.includes('grassknot') && !moves.includes('gigadrain'));
+		case 'hiddenpowerice':
+			return !moves.includes('icebeam') && (dex.gen < 4 && !moves.includes('icepunch')) ||
+				(dex.gen > 5 && !moves.includes('aurorabeam') && !moves.includes('glaciate'));
+		case 'hiddenpowerflying':
+			return dex.gen < 4 && !moves.includes('drillpeck');
+		case 'hiddenpowerbug':
+			return dex.gen < 4 && !moves.includes('megahorn');
+		case 'hiddenpowerpsychic':
+			return species.baseSpecies === 'Unown';
+		case 'hyperspacefury':
+			return species.id === 'hoopaunbound';
+		case 'hypnosis':
+			return (dex.gen < 4 && !moves.includes('sleeppowder')) || (dex.gen > 6 && abilityid === 'baddreams');
+		case 'icepunch':
+			return !moves.includes('icespinner') || ['sheerforce', 'ironfist'].includes(abilityid) || itemid === 'punchingglove';
+		case 'iciclecrash':
+			return !moves.includes('mountaingale');
+		case 'iciclespear':
+			return dex.gen > 3;
+		case 'icywind':
+			// Keldeo needs Hidden Power for Electric/Ghost
+			return species.baseSpecies === 'Keldeo' || this.isDoubles;
+		case 'incinerate':
+			return dex.gen > 5 &&
+				!moves.includes('flamethrower') && !moves.includes('mysticalfire') && !moves.includes('burningjealousy');
+		case 'infestation':
+			return moves.includes('stickyweb');
+		case 'irondefense':
+			return !moves.includes('acidarmor') && !moves.includes('barrier');
+		case 'irontail':
+			return dex.gen > 5 && !moves.includes('ironhead') && !moves.includes('gunkshot') && !moves.includes('poisonjab');
+		case 'jumpkick':
+			return !moves.includes('highjumpkick') && !moves.includes('axekick');
+		case 'lastresort':
+			return set && set.moves.length < 3;
+		case 'leafblade':
+			return true;
+		case 'leechlife':
+			return dex.gen > 6;
+		case 'magiccoat':
+			return dex.gen > 3;
+		case 'meteorbeam':
+			return true;
+		case 'mysticalfire':
+			return dex.gen > 6 && !moves.includes('flamethrower');
+		case 'naturepower':
+			return dex.gen === 5;
+		case 'needlearm':
+			return dex.gen < 4;
+		case 'nightslash':
+			return !moves.includes('crunch') && !(moves.includes('knockoff') && dex.gen >= 6);
+		case 'outrage':
+			return dex.gen > 3 && !moves.includes('glaiverush');
+		case 'petaldance':
+			return abilityid === 'owntempo';
+		case 'phantomforce':
+			return (!moves.includes('poltergeist') && !moves.includes('shadowclaw')) || this.isDoubles;
+		case 'poisonfang':
+			return species.types.includes('Poison') && !moves.includes('gunkshot') && !moves.includes('poisonjab');
+		case 'raindance':
+			return dex.gen < 4;
+		case 'relicsong':
+			return species.id === 'meloetta';
+		case 'refresh':
+			return !moves.includes('aromatherapy') && !moves.includes('healbell');
+		case 'risingvoltage':
+			return abilityid === 'electricsurge' || abilityid === 'hadronengine';
+		case 'rocktomb':
+			return abilityid === 'technician';
+		case 'selfdestruct':
+			return dex.gen < 5 && !moves.includes('explosion');
+		case 'shadowpunch':
+			return abilityid === 'ironfist' && !moves.includes('ragefist');
+		case 'shelter':
+			return !moves.includes('acidarmor') && !moves.includes('irondefense');
+		case 'skyuppercut':
+			return dex.gen < 4;
+		case 'smackdown':
+			return species.types.includes('Ground');
+		case 'smartstrike':
+			return species.types.includes('Steel') && !moves.includes('ironhead');
+		case 'soak':
+			return abilityid === 'unaware';
+		case 'steelwing':
+			return !moves.includes('ironhead');
+		case 'stompingtantrum':
+			return (!moves.includes('earthquake') && !moves.includes('drillrun')) || this.isDoubles;
+		case 'stunspore':
+			return !moves.includes('thunderwave');
+		case 'sunnyday':
+			return dex.gen < 4;
+		case 'technoblast':
+			return dex.gen > 5 && itemid.endsWith('drive') || itemid === 'dousedrive';
+		case 'teleport':
+			return dex.gen > 7;
+		case 'temperflare':
+			return (!moves.includes('flareblitz') && !moves.includes('pyroball') && !moves.includes('sacredfire') &&
+				!moves.includes('bitterblade') && !moves.includes('firepunch')) || this.isDoubles;
+		case 'terrainpulse': case 'waterpulse':
+			return ['megalauncher', 'technician'].includes(abilityid) && !moves.includes('originpulse');
+		case 'thief':
+			return dex.gen === 2;
+		case 'toxicspikes':
+			return abilityid !== 'toxicdebris';
+		case 'triattack':
+			return dex.gen > 3;
+		case 'trickroom':
+			return species.baseStats.spe <= 100;
+		case 'wildcharge':
+			return !moves.includes('supercellslam');
+		case 'zapcannon':
+			return abilityid === 'noguard' || (dex.gen < 4 && !moves.includes('thunderwave'));
 		}
 
 		if (this.isDoubles && BattleMoveSearch.GOOD_DOUBLES_MOVES.includes(id)) {

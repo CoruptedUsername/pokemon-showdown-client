@@ -349,6 +349,40 @@ export class ChatRoom extends PSRoom {
 			this.log?.reset();
 			this.update(null);
 		},
+		'togglemessages'(target) {
+			if (this.pmTarget ||
+				this.type !== 'chat') return this.errorReply('This command can only be used in proper chat rooms.');
+			if (this.log) {
+				const userid = toID(target);
+				const classStart = 'revealed chat chatmessage-' + userid;
+				const nodes: HTMLElement[] = [];
+				let isHidden = true;
+				for (const node of this.log.innerElem.childNodes as any as HTMLElement[]) {
+					if (node.className && (node.className + ' ').startsWith(classStart)) {
+						nodes.push(node);
+					}
+				}
+				if (this.log.preemptElem) {
+					for (const node of this.log.preemptElem.childNodes as any as HTMLElement[]) {
+						if (node.className && (node.className + ' ').startsWith(classStart)) {
+							nodes.push(node);
+						}
+					}
+				}
+				isHidden = nodes[0].style.display === 'none';
+				nodes.every(node => {
+					node.style.display = isHidden ? '' : 'none';
+					return true;
+				});
+				isHidden = !isHidden;
+				const toggleButtons = this.log.innerElem.querySelectorAll(`button[name="toggleMessages"][value="${userid}"]`);
+				for (const button of toggleButtons) {
+					button.innerHTML = isHidden ?
+						`<small>(${nodes.length} line${nodes.length > 1 ? 's' : ''} from ${userid} hidden)</small>` :
+						`<small>(Hide ${nodes.length} line${nodes.length > 1 ? 's' : ''} from ${userid})</small>`;
+				}
+			}
+		},
 		'rank,ranking,rating,ladder'(target) {
 			let arg = target;
 			if (!arg) {
@@ -934,6 +968,7 @@ export class ChatTextEntry extends preact.Component<{
 	}
 	handleKey(ev: KeyboardEvent) {
 		const cmdKey = ((ev.metaKey ? 1 : 0) + (ev.ctrlKey ? 1 : 0) === 1) && !ev.altKey && !ev.shiftKey;
+		const altKey = ev.altKey;
 		// const anyModifier = ev.ctrlKey || ev.altKey || ev.metaKey || ev.shiftKey;
 		if (ev.keyCode === 13 && !ev.shiftKey) { // Enter key
 			return this.submit();
@@ -965,7 +1000,7 @@ export class ChatTextEntry extends preact.Component<{
 		// 	const newValue = `/pm ${PS.user.lastPM}, `;
 		// 	this.setValue(newValue, newValue.length);
 		// 	return true;
-		} else if (ev.shiftKey && ev.keyCode === 37) {
+		} else if (ev.shiftKey && ev.keyCode === 37 && !altKey) {
 			if (PS.prefs.onepanel === 'vertical' || this.getValue().length > 0) return;
 			const curLoc = PS.room.location;
 			let newLoc = curLoc;
@@ -1002,7 +1037,7 @@ export class ChatTextEntry extends preact.Component<{
 				PS.update();
 			}
 			return true;
-		} else if (ev.shiftKey && ev.keyCode === 39) {
+		} else if (ev.shiftKey && ev.keyCode === 39 && !altKey) {
 			if (PS.prefs.onepanel === 'vertical' || this.getValue().length > 0) return;
 			const curLoc = PS.room.location;
 			let newLoc = curLoc;
