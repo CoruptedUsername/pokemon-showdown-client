@@ -11,6 +11,7 @@ process.chdir(rootDir);
 if (!fs.existsSync('caches/pokemon-showdown')) {
 	child_process.execSync('git clone https://github.com/CoruptedUsername/pokemon-showdown.git', {
 		cwd: 'caches',
+		b: 'sprite-test',
 	});
 }
 
@@ -44,28 +45,39 @@ function requireNoCache(pathSpec) {
 
 const BattleTeambuilderTable = {};
 
-BattleTeambuilderTable.Formats = {};
+BattleTeambuilderTable.formats = {};
+BattleTeambuilderTable.sprites = {};
+
+let modsWithSprites = []
 
 for (const modDex in Dex.dexes) {
-	if (!Dex.mod(modDex).data.Scripts.teambuilders) {
-		continue;
+	if (Dex.mod(modDex).data.Sprites) {
+		BattleTeambuilderTable.sprites[modDex] = {};
+		try {
+			fs.cpSync(`./caches/pokemon-showdown/data/mods/${modDex}/sprites`, `./play.pokemonshowdown.com/sprites/mods/${modDex}/sprites`, {recursive: true, force: true});
+		} catch (e) { }
+		for (const sprite of Object.keys(Dex.mod(modDex).data.Sprites)) {
+			BattleTeambuilderTable.sprites[modDex][sprite] = Dex.mod(modDex).data.Sprites[sprite];
+		}
 	}
-	for (const builder of Object.keys(Dex.mod(modDex).data.Scripts.teambuilders)) {
-		const builderData = Dex.mod(modDex).data.Scripts.teambuilders[builder];
-		BattleTeambuilderTable[builder] = {}
-		BattleTeambuilderTable[builder].mod = modDex;
-		BattleTeambuilderTable[builder].formatType = builderData.formatType;
-		BattleTeambuilderTable[builder].isNatDex = builderData.isNatDex;
-		BattleTeambuilderTable[builder].bonusRules = builderData?.bonusRules;
-		for (const format of Object.keys(builderData.formats)) {
-			const formatData = builderData.formats[format];
-			BattleTeambuilderTable.Formats[format] = {};
-			BattleTeambuilderTable.Formats[format].mod = modDex;
-			BattleTeambuilderTable.Formats[format].builder = builder;
-			BattleTeambuilderTable.Formats[format].topSlice = formatData.topSlice;
-			BattleTeambuilderTable.Formats[format].bottomSlice = formatData?.bottomSlice;
-			BattleTeambuilderTable.Formats[format].defaultLevel = formatData.defaultLevel;
-			BattleTeambuilderTable.Formats[format].bonusRules = formatData?.bonusRules;
+	if (Dex.mod(modDex).data.Scripts.teambuilders) {
+		for (const builder of Object.keys(Dex.mod(modDex).data.Scripts.teambuilders)) {
+			const builderData = Dex.mod(modDex).data.Scripts.teambuilders[builder];
+			BattleTeambuilderTable[builder] = {};
+			BattleTeambuilderTable[builder].mod = modDex;
+			BattleTeambuilderTable[builder].formatType = builderData.formatType;
+			BattleTeambuilderTable[builder].isNatDex = builderData.isNatDex;
+			BattleTeambuilderTable[builder].bonusRules = builderData?.bonusRules;
+			for (const format of Object.keys(builderData.formats)) {
+				const formatData = builderData.formats[format];
+				BattleTeambuilderTable.formats[format] = {};
+				BattleTeambuilderTable.formats[format].mod = modDex;
+				BattleTeambuilderTable.formats[format].builder = builder;
+				BattleTeambuilderTable.formats[format].topSlice = formatData.topSlice;
+				BattleTeambuilderTable.formats[format].bottomSlice = formatData?.bottomSlice;
+				BattleTeambuilderTable.formats[format].defaultLevel = formatData.defaultLevel;
+				BattleTeambuilderTable.formats[format].bonusRules = formatData?.bonusRules;
+			}
 		}
 	}
 }
@@ -303,7 +315,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	let buf = '// DO NOT EDIT - automatically built with build-tools/build-indexes\n\n';
 	// process.stdout.write("\n  ");
 	for (const tableKey of Object.keys(BattleTeambuilderTable)) {
-		if (tableKey === "Formats") {
+		if (tableKey === "formats" || tableKey === "sprites") {
 			continue;
 		}
 		const gen = BattleTeambuilderTable[tableKey]["mod"];
@@ -630,7 +642,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	const gen4HMs = new Set(['cut', 'fly', 'surf', 'strength', 'rocksmash', 'waterfall', 'rockclimb']);
 
 	for (const tableKey of Object.keys(BattleTeambuilderTable)) {
-		if (tableKey === "Formats") {
+		if (tableKey === "formats" || tableKey === "sprites") {
 			continue;
 		}
 		const gen = BattleTeambuilderTable[tableKey]["mod"];
@@ -702,7 +714,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	//
 
 	for (const tableKey of Object.keys(BattleTeambuilderTable)) {
-		if (tableKey === "Formats") {
+		if (tableKey === "formats" || tableKey === "sprites") {
 			continue;
 		}
 		const gen = BattleTeambuilderTable[tableKey]["mod"];

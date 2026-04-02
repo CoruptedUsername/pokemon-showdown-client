@@ -207,6 +207,7 @@ export interface TeambuilderSpriteData {
 	spriteDir: string;
 	spriteid: string;
 	shiny?: boolean;
+	local?: boolean;
 }
 
 export const Dex = new class implements ModdedDex {
@@ -272,8 +273,8 @@ export const Dex = new class implements ModdedDex {
 	}
 	forFormat(format: string) {
 		let dex = Dex.forGen(Dex.formatGen(format));
-		if (window.BattleTeambuilderTable.Formats[format]) {
-			dex = Dex.mod(window.BattleTeambuilderTable.Formats[format].mod)
+		if (window.BattleTeambuilderTable.formats[format]) {
+			dex = Dex.mod(window.BattleTeambuilderTable.formats[format].mod)
 		}
 		return dex;
 	}
@@ -566,7 +567,9 @@ export const Dex = new class implements ModdedDex {
 		mod?: string,
 		dynamax?: boolean,
 	} = { gen: 6 }) {
-		const mechanicsGen = options.gen || 6;
+		let copySprite = false;
+		let moddedSprite = false;
+		let mechanicsGen = options.gen || 6;
 		let isDynamax = !!options.dynamax;
 		if (pokemon instanceof Pokemon) {
 			if (pokemon.volatiles.transform) {
@@ -586,6 +589,12 @@ export const Dex = new class implements ModdedDex {
 			}
 			pokemon = pokemon.getSpeciesForme() + (isGigantamax ? '-Gmax' : '');
 		}
+		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite) {
+			pokemon = window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite.copySpriteMon.toString;
+			mechanicsGen = window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite.copySpriteGen;
+			copySprite = true;
+		}
+		// @ts-ignore Throws type error when no such error exists
 		const species = Dex.species.get(pokemon);
 		// Gmax sprites are already extremely large, so we don't need to double.
 		if (species.name.endsWith('-Gmax')) isDynamax = false;
@@ -624,8 +633,8 @@ export const Dex = new class implements ModdedDex {
 		//     (eg. Darmanitan in graphicsGen 2) then we go up gens until it exists.
 		//
 		let graphicsGen = mechanicsGen;
-		if (Dex.prefs('nopastgens')) graphicsGen = 6;
-		if (Dex.prefs('bwgfx') && graphicsGen >= 6) graphicsGen = 5;
+		if (Dex.prefs('nopastgens') && !copySprite) graphicsGen = 6;
+		if (Dex.prefs('bwgfx') && graphicsGen >= 6 && !copySprite) graphicsGen = 5;
 		spriteData.gen = Math.max(graphicsGen, Math.min(species.gen, 5));
 		const baseDir = ['', 'gen1', 'gen2', 'gen3', 'gen4', 'gen5', '', '', '', ''][spriteData.gen];
 
@@ -728,15 +737,35 @@ export const Dex = new class implements ModdedDex {
 		if (!animatedSprite) {
 			// There is no entry or enough data in pokedex-mini.js
 			// Handle these in case-by-case basis; either using BW sprites or matching the played gen.
-			dir = (baseDir || 'gen5') + dir;
+			if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.spriteDirectory) {
+				dir = `/sprites/mods/${options.mod}/sprites/${window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)].spriteDirectory}/`;
+				let spriteUrl = '';
+				const spriteType = (options.gender && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite == "F" ? 1 : 0) +
+					(options.shiny && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFrontSprite ? 2 : 0) +
+					(!spriteData.isFrontSprite && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.backSprite ? 4 : 0);
+				switch (spriteType) {
+					case 0: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.frontSprite; break;
+					case 1: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite; break;
+					case 2: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFrontSprite; break;
+					case 3: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleFrontSprite; break;
+					case 4: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.backSprite; break;
+					case 5: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleBackSprite; break;
+					case 6: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyBackSprite; break;
+					case 7: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleBackSprite; break;
+				}
+				spriteData.url = dir + spriteUrl;
 
-			// Gender differences don't exist prior to Gen 4,
-			// so there are no sprites for it
-			if (spriteData.gen >= 4 && miscData['frontf'] && options.gender === 'F') {
-				name += '-f';
+			} else {
+				dir = (baseDir || 'gen5') + dir;
+
+				// Gender differences don't exist prior to Gen 4,
+				// so there are no sprites for it
+				if (spriteData.gen >= 4 && miscData['frontf'] && options.gender === 'F') {
+					name += '-f';
+				}
+
+				spriteData.url += dir + '/' + name + '.png';
 			}
-
-			spriteData.url += dir + '/' + name + '.png';
 		}
 
 		if (!options.noScale) {
@@ -828,6 +857,31 @@ export const Dex = new class implements ModdedDex {
 	getTeambuilderSpriteData(pokemon: any, dex: ModdedDex = Dex): TeambuilderSpriteData {
 		let gen = dex.gen;
 		let id = toID(pokemon.species || pokemon);
+		if (dex && window.BattleTeambuilderTable.sprites?.[dex.modid]?.[toID(pokemon.species || pokemon)]) {
+			if (window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].spriteDirectory &&
+				window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].teambuilderSprite) {
+				let spriteDirectory = `${dex.modid}/sprites/${window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].spriteDirectory}`
+				let teambuilderSprite = '';
+				if (!!pokemon.shiny && window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].shinyTeambuilderSprite) {
+					teambuilderSprite = window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].shinyTeambuilderSprite
+				}
+				else {
+					teambuilderSprite = window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].teambuilderSprite
+				}
+				return {
+					spriteid: teambuilderSprite,
+					spriteDir: spriteDirectory,
+					x: 8,
+					y: 10,
+					h: 96,
+					shiny: !!pokemon.shiny,
+					local: true,
+				}
+			} else if (window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].copySprite) {
+				gen = window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].copySprite.copySpriteGen;
+				id = toID(window.BattleTeambuilderTable.sprites[dex.modid][toID(pokemon.species || pokemon)].copySprite.copySpriteMon)
+			}
+		}
 		let species = Dex.species.get(id);
 		let spriteid: string;
 		if (typeof pokemon === 'string') {
@@ -843,7 +897,7 @@ export const Dex = new class implements ModdedDex {
 			return {
 				spriteid,
 				spriteDir: 'sprites/afd',
-				shiny: !!pokemon.shiny,
+				shiny: !!pokemon.shiny && gen != 1,
 				x: 10,
 				y: 5,
 			};
@@ -854,7 +908,7 @@ export const Dex = new class implements ModdedDex {
 			x: -2,
 			y: -3,
 		};
-		if (pokemon.shiny) spriteData.shiny = true;
+		if (pokemon.shiny && gen != 1) spriteData.shiny = true;
 		if (dex.modid === 'gen7letsgo') gen = 8;
 		if (Dex.prefs('nopastgens')) gen = 9;
 		if (Dex.prefs('bwgfx') && gen > 5) gen = 5;
@@ -904,7 +958,12 @@ export const Dex = new class implements ModdedDex {
 		const data = this.getTeambuilderSpriteData(pokemon, dex);
 		const shiny = (data.shiny ? '-shiny' : '');
 		const resize = (data.h ? `background-size:${data.h}px` : '');
-		return `background-image:url(${Dex.resourcePrefix}${data.spriteDir}${shiny}/${data.spriteid}.png);background-position:${data.x + xOffset}px ${data.y + yOffset}px;background-repeat:no-repeat;${resize}`;
+		const prefix = (data.local ? '/sprites/mods/' : Dex.resourcePrefix);
+		if (data.local) {
+			return `background-image:url(/sprites/mods/${data.spriteDir}/${data.spriteid});background-position:${data.x + xOffset}px ${data.y + yOffset}px;background-repeat:no-repeat;${resize}`;
+		} else {
+			return `background-image:url(${Dex.resourcePrefix}${data.spriteDir}${shiny}/${data.spriteid}.png);background-position:${data.x + xOffset}px ${data.y + yOffset}px;background-repeat:no-repeat;${resize}`;
+		}
 	}
 
 	getItemIcon(item: any) {
