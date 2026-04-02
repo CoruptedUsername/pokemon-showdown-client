@@ -594,6 +594,10 @@ export const Dex = new class implements ModdedDex {
 			mechanicsGen = window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite.copySpriteGen;
 			copySprite = true;
 		}
+		let spriteOverride = false;
+		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.spriteDirectory) {
+			spriteOverride = true;
+		}
 		// @ts-ignore Throws type error when no such error exists
 		const species = Dex.species.get(pokemon);
 		// Gmax sprites are already extremely large, so we don't need to double.
@@ -734,38 +738,36 @@ export const Dex = new class implements ModdedDex {
 				break;
 			}
 		}
-		if (!animatedSprite) {
+		if (spriteOverride && options.mod) {
+			console.log("Sprite Overridden");
+			dir = `/sprites/mods/${options.mod}/sprites/${window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)].spriteDirectory}/`;
+			let spriteUrl = '';
+			const spriteType = (options.gender && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite == "F" ? 1 : 0) +
+				(options.shiny && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFrontSprite ? 2 : 0) +
+				(!spriteData.isFrontSprite && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.backSprite ? 4 : 0);
+			switch (spriteType) {
+				case 0: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.frontSprite; break;
+				case 1: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite; break;
+				case 2: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFrontSprite; break;
+				case 3: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleFrontSprite; break;
+				case 4: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.backSprite; break;
+				case 5: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleBackSprite; break;
+				case 6: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyBackSprite; break;
+				case 7: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleBackSprite; break;
+			}
+			spriteData.url = dir + spriteUrl;
+		}
+		if (!animatedSprite && !spriteOverride) {
 			// There is no entry or enough data in pokedex-mini.js
 			// Handle these in case-by-case basis; either using BW sprites or matching the played gen.
-			if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.spriteDirectory) {
-				dir = `/sprites/mods/${options.mod}/sprites/${window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)].spriteDirectory}/`;
-				let spriteUrl = '';
-				const spriteType = (options.gender && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite == "F" ? 1 : 0) +
-					(options.shiny && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFrontSprite ? 2 : 0) +
-					(!spriteData.isFrontSprite && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.backSprite ? 4 : 0);
-				switch (spriteType) {
-					case 0: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.frontSprite; break;
-					case 1: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite; break;
-					case 2: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFrontSprite; break;
-					case 3: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleFrontSprite; break;
-					case 4: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.backSprite; break;
-					case 5: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleBackSprite; break;
-					case 6: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyBackSprite; break;
-					case 7: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleBackSprite; break;
-				}
-				spriteData.url = dir + spriteUrl;
+			dir = (baseDir || 'gen5') + dir;
 
-			} else {
-				dir = (baseDir || 'gen5') + dir;
-
-				// Gender differences don't exist prior to Gen 4,
-				// so there are no sprites for it
-				if (spriteData.gen >= 4 && miscData['frontf'] && options.gender === 'F') {
-					name += '-f';
-				}
-
-				spriteData.url += dir + '/' + name + '.png';
+			// Gender differences don't exist prior to Gen 4,
+			// so there are no sprites for it
+			if (spriteData.gen >= 4 && miscData['frontf'] && options.gender === 'F') {
+				name += '-f';
 			}
+				spriteData.url += dir + '/' + name + '.png';
 		}
 
 		if (!options.noScale) {
