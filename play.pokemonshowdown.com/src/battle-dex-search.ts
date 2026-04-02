@@ -612,10 +612,10 @@ abstract class BattleTypedSearch<T extends SearchType> {
 			this.dex = Dex;
 		}
 
-		if (window.BattleTeambuilderTable["Formats"][format]) {
-			this.dex = Dex.mod(window.BattleTeambuilderTable["Formats"][format].mod);
+		if (window.BattleTeambuilderTable["formats"][format]) {
+			this.dex = Dex.mod(window.BattleTeambuilderTable["formats"][format].mod);
 			this.formatType = format;
-			if (BattleTeambuilderTable[window.BattleTeambuilderTable["Formats"][format].builder].formatType === "doubles") {
+			if (BattleTeambuilderTable[window.BattleTeambuilderTable["formats"][format].builder].formatType === "doubles") {
 				this.isDoubles = true;
 			}
 		}
@@ -746,8 +746,8 @@ abstract class BattleTypedSearch<T extends SearchType> {
 	protected firstLearnsetid(speciesid: ID) { // NewerGenChange
 		let table = BattleTeambuilderTable["gen9"];
 
-		if (BattleTeambuilderTable.Formats[this.formatType]) {
-			table = BattleTeambuilderTable[BattleTeambuilderTable.Formats[this.formatType].builder];
+		if (BattleTeambuilderTable.formats[this.formatType]) {
+			table = BattleTeambuilderTable[BattleTeambuilderTable.formats[this.formatType].builder];
 		}
 
 		if (speciesid in table.learnsets) return speciesid;
@@ -814,8 +814,8 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		let learnsetid = this.firstLearnsetid(speciesid);
 		while (learnsetid) { // NewerGenChange
 			let table = BattleTeambuilderTable;
-			if (BattleTeambuilderTable.Formats[this.formatType]) {
-				table = BattleTeambuilderTable[BattleTeambuilderTable.Formats[this.formatType].builder];
+			if (BattleTeambuilderTable.formats[this.formatType]) {
+				table = BattleTeambuilderTable[BattleTeambuilderTable.formats[this.formatType].builder];
 			}
 			let learnset = table.learnsets[learnsetid];
 			const eggMovesOnly = this.eggMovesOnly(learnsetid, speciesid);
@@ -836,8 +836,8 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		let table = window.BattleTeambuilderTable;
 		const gen = this.dex.gen; // NewerGenChange
 		let tableKey = "gen9"
-		if (BattleTeambuilderTable.Formats[this.formatType]) {
-			tableKey = BattleTeambuilderTable.Formats[this.formatType].builder;
+		if (BattleTeambuilderTable.formats[this.formatType]) {
+			tableKey = BattleTeambuilderTable.formats[this.formatType].builder;
 		}
 		if (table?.[tableKey]) {
 			table = table[tableKey];
@@ -935,8 +935,8 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 
 		let table = BattleTeambuilderTable["gen9"];
 
-		if (BattleTeambuilderTable.Formats[this.formatType]) {
-			table = BattleTeambuilderTable[BattleTeambuilderTable.Formats[this.formatType].builder];
+		if (BattleTeambuilderTable.formats[this.formatType]) {
+			table = BattleTeambuilderTable[BattleTeambuilderTable.formats[this.formatType].builder];
 		}
 
 		if (!table.tierSet) {
@@ -1118,8 +1118,8 @@ class BattleItemSearch extends BattleTypedSearch<'item'> {
 	}
 	getDefaultResults(): SearchRow[] {
 		let table = BattleTeambuilderTable["gen9"];
-		if (BattleTeambuilderTable.Formats[this.formatType]) {
-			table = BattleTeambuilderTable[BattleTeambuilderTable.Formats[this.formatType].builder];
+		if (BattleTeambuilderTable.formats[this.formatType]) {
+			table = BattleTeambuilderTable[BattleTeambuilderTable.formats[this.formatType].builder];
 		}
 		if (!table.itemSet) {
 			table.itemSet = table.items.map((r: any) => {
@@ -1508,8 +1508,8 @@ class BattleMoveSearch extends BattleTypedSearch<'move'> {
 		const isTradebacks = format.includes('tradebacks');
 
 		let tableKey = "gen9";
-		if (BattleTeambuilderTable.Formats[this.formatType]) {
-			tableKey = BattleTeambuilderTable.Formats[this.formatType].builder;
+		if (BattleTeambuilderTable.formats[this.formatType]) {
+			tableKey = BattleTeambuilderTable.formats[this.formatType].builder;
 		}
 		const regionBornLegality = dex.gen >= 6 && // NewerGenChange Natdex
 			(/^battle(spot|stadium|festival)/.test(format) || format.startsWith('bss') ||

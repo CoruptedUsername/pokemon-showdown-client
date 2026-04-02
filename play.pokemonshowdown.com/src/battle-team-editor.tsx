@@ -97,8 +97,8 @@ export class TeamEditorState extends PSModel {
 		let currentBuilder = "gen9";
 		this.defaultLevel = 100;
 
-		if (formatid in window.BattleTeambuilderTable.Formats) {
-			currentBuilder = window.BattleTeambuilderTable.Formats[formatid].mod;
+		if (formatid in window.BattleTeambuilderTable.formats) {
+			currentBuilder = window.BattleTeambuilderTable.formats[formatid].mod;
 		}
 
 		if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid]) {
