@@ -595,6 +595,8 @@ export const Dex = new class implements ModdedDex {
 			copySprite = true;
 		}
 		let spriteOverride = false;
+		console.log(options.mod);
+		console.log(toID(pokemon));
 		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.spriteDirectory) {
 			console.log("Sprite Override set to true");
 			spriteOverride = true;
