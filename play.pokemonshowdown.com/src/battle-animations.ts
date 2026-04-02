@@ -1113,6 +1113,7 @@ export class BattleScene implements BattleSceneStub {
 
 	addPokemonSprite(pokemon: Pokemon) {
 		console.log(`1115, ${this}`);
+		throw("erg");
 		const sprite = new PokemonSprite(Dex.getSpriteData(pokemon, pokemon.side.isFar, {
 			gen: this.gen,
 			mod: this.mod,
