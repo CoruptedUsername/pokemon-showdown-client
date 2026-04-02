@@ -596,6 +596,7 @@ export const Dex = new class implements ModdedDex {
 		}
 		let spriteOverride = false;
 		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.spriteDirectory) {
+			console.log("Sprite Override set to true");
 			spriteOverride = true;
 		}
 		// @ts-ignore Throws type error when no such error exists
