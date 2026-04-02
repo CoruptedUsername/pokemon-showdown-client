@@ -568,7 +568,6 @@ export const Dex = new class implements ModdedDex {
 		dynamax?: boolean,
 	} = { gen: 6 }) {
 		let copySprite = false;
-		let moddedSprite = false;
 		let mechanicsGen = options.gen || 6;
 		let isDynamax = !!options.dynamax;
 		if (pokemon instanceof Pokemon) {

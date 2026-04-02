@@ -196,7 +196,7 @@ class SetBlock extends preact.Component<{
 		const spriteData = Dex.getSpriteData(
 			Dex.species.get(set.species),
 			true,
-			{ gen, shiny: set.shiny, gender: set.gender as 'F' }
+			{ gen, shiny: set.shiny, gender: set.gender as 'F', mod: Dex.modid }
 		);
 		let forceResize = 110;
 		if (matchMedia("(max-width: 450px)").matches && this.props.mode === '2col') {
