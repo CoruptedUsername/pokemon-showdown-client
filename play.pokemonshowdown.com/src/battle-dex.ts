@@ -716,7 +716,7 @@ export const Dex = new class implements ModdedDex {
 		}
 
 		let animatedSprite = false;
-		if (!Dex.prefs('noanim') && !Dex.prefs('nogif') && spriteData.gen >= 5) {
+		if (!Dex.prefs('noanim') && !Dex.prefs('nogif') && spriteData.gen >= 5 && !spriteOverride) {
 			const animationArray: [AnyObject, string][] = [];
 			if (baseDir === '' && window.BattlePokemonSprites) {
 				animationArray.push([BattlePokemonSprites[speciesid], '']);
