@@ -866,7 +866,7 @@ export class BattleScene implements BattleSceneStub {
 				let spriteData = Dex.getSpriteData(pokemon, !!spriteIndex, {
 					gen: this.gen,
 					noScale: true,
-					mod: this.mod,
+					mod: window.BattleTeambuilderTable.formats[toID(this.battle.tier)].mod,
 				});
 				let y = 0;
 				let x = 0;
@@ -2015,7 +2015,7 @@ export class PokemonSprite extends Sprite {
 		console.log(`2015, ${this.scene}`);
 		const subsp = Dex.getSpriteData('substitute', this.isFrontSprite, {
 			gen: this.scene.gen,
-			mod: this.scene.mod,
+			mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
 		});
 		this.subsp = subsp;
 		this.$sub = $('<img src="' + subsp.url + '" style="display:block;opacity:0;position:absolute"' + (subsp.pixelated ? ' class="pixelated"' : '') + ' />');
@@ -2131,7 +2131,7 @@ export class PokemonSprite extends Sprite {
 			console.log(`2131, ${this.scene}`);
 			this.sp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 				gen: this.scene.gen,
-				mod: this.scene.mod,
+				mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
 			});
 		} else if (this.oldsp) {
 			this.sp = this.oldsp;
@@ -2537,7 +2537,7 @@ export class PokemonSprite extends Sprite {
 		console.log(`2537, ${this.scene}`);
 		let sp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 			gen: this.scene.gen,
-			mod: this.scene.mod,
+			mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
 		});
 		let oldsp = this.sp;
 		if (isPermanent) {
@@ -2546,7 +2546,7 @@ export class PokemonSprite extends Sprite {
 				console.log(`2546, ${this.scene}`);
 				this.oldsp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 					gen: this.scene.gen,
-					mod: this.scene.mod,
+					mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
 					dynamax: false,
 				});
 			} else {
