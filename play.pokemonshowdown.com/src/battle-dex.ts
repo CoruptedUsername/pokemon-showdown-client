@@ -594,10 +594,7 @@ export const Dex = new class implements ModdedDex {
 			copySprite = true;
 		}
 		let spriteOverride = false;
-		console.log(options.mod);
-		console.log(toID(pokemon));
 		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.spriteDirectory) {
-			console.log("Sprite Override set to true");
 			spriteOverride = true;
 		}
 		// @ts-ignore Throws type error when no such error exists
@@ -741,10 +738,9 @@ export const Dex = new class implements ModdedDex {
 			}
 		}
 		if (spriteOverride && options.mod) {
-			console.log("Sprite Overridden");
 			dir = `/sprites/mods/${options.mod}/sprites/${window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)].spriteDirectory}/`;
 			let spriteUrl = '';
-			const spriteType = (options.gender && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite == "F" ? 1 : 0) +
+			const spriteType = (options.gender == "F" && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.femaleFrontSprite  ? 1 : 0) +
 				(options.shiny && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFrontSprite ? 2 : 0) +
 				(!spriteData.isFrontSprite && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.backSprite ? 4 : 0);
 			switch (spriteType) {
@@ -758,7 +754,6 @@ export const Dex = new class implements ModdedDex {
 				case 7: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleBackSprite; break;
 			}
 			spriteData.url = dir + spriteUrl;
-			console.log(spriteData.url);
 		}
 		if (!animatedSprite && !spriteOverride) {
 			// There is no entry or enough data in pokedex-mini.js
@@ -1083,14 +1078,12 @@ export class ModdedDex {
 				const table = window.BattleTeambuilderTable[`gen${i}`];
 				if (id in table.overrideItemData) {
 					Object.assign(data, table.overrideItemData[id]);
-					console.log(table.overrideItemData[id]);
 				}
 			}
 			if (this.modid !== `gen${this.gen}`) {
 				const table = window.BattleTeambuilderTable[this.modid];
 				if (id in table.overrideItemData) {
 					Object.assign(data, table.overrideItemData[id]);
-					console.log(table.overrideItemData[id]);
 				}
 			}
 
