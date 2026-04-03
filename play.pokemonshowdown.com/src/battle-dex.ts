@@ -758,6 +758,7 @@ export const Dex = new class implements ModdedDex {
 				case 7: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.shinyFemaleBackSprite; break;
 			}
 			spriteData.url = dir + spriteUrl;
+			console.log(spriteData.url);
 		}
 		if (!animatedSprite && !spriteOverride) {
 			// There is no entry or enough data in pokedex-mini.js
