@@ -1112,12 +1112,10 @@ export class BattleScene implements BattleSceneStub {
 	}
 
 	addPokemonSprite(pokemon: Pokemon) {
-		console.log(`1115, ${this.battle.tier}`);
-		console.log(window.BattleTeambuilderTable.formats[toID(this.battle.tier)].mod);
-		throw new Error("Erg");
+		console.log(Dex.forFormat(this.battle.tier));
 		const sprite = new PokemonSprite(Dex.getSpriteData(pokemon, pokemon.side.isFar, {
 			gen: this.gen,
-			mod: this.mod,
+			mod: window.BattleTeambuilderTable.formats[toID(this.battle.tier)].mod,
 		}), {
 			x: pokemon.side.x,
 			y: pokemon.side.y,
