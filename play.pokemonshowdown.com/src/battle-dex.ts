@@ -1141,7 +1141,10 @@ export class ModdedDex {
 				}
 			}
 			if (this.modid !== `gen${this.gen}`) {
-				const table = window.BattleTeambuilderTable[this.modid];
+				let table = window.BattleTeambuilderTable[this.modid];
+				if (table === undefined) {
+					table = window.BattleTeambuilderTable["gen9"];
+				}
 				if (id in table?.overrideSpeciesData) {
 					Object.assign(data, table.overrideSpeciesData[id]);
 				}
@@ -1150,7 +1153,10 @@ export class ModdedDex {
 				data.abilities = { 0: "No Ability" };
 			}
 
-			const table = window.BattleTeambuilderTable[this.modid];
+			let table = window.BattleTeambuilderTable[this.modid];
+			if (table === undefined) {
+				table = window.BattleTeambuilderTable["gen9"];
+			}
 			if (id in table.overrideTier) data.tier = table.overrideTier[id];
 			if (!data.tier && id.endsWith('totem')) {
 				data.tier = this.species.get(id.slice(0, -5)).tier;
