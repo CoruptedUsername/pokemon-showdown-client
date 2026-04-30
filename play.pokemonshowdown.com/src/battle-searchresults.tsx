@@ -58,6 +58,7 @@ export class PSSearchResults extends preact.Component<{
 
 	renderPokemonRow(id: ID, matchStart: number, matchEnd: number, errorMessage?: preact.ComponentChildren) {
 		const search = this.props.search;
+		const mod = this.props.search.dex.modid;
 		const pokemon = search.dex.species.get(id);
 		if (!pokemon) return <li class="result">Unrecognized pokemon</li>;
 
@@ -76,7 +77,7 @@ export class PSSearchResults extends preact.Component<{
 				<span class="col numcol">{search.getTier(pokemon)}</span>
 
 				<span class="col iconcol">
-					<span class="pixelated" style={Dex.getPokemonIcon(pokemon.id)}></span>
+					<span class="pixelated" style={Dex.getPokemonIcon(pokemon.id, false, mod)}></span>
 				</span>
 
 				<span class="col pokemonnamecol">{this.renderName(pokemon.name, matchStart, matchEnd, tagStart)}</span>
@@ -93,7 +94,7 @@ export class PSSearchResults extends preact.Component<{
 				<span class="col numcol">{search.getTier(pokemon)}</span>
 
 				<span class="col iconcol">
-					<span class="pixelated" style={Dex.getPokemonIcon(pokemon.id)}></span>
+					<span class="pixelated" style={Dex.getPokemonIcon(pokemon.id, false, mod)}></span>
 				</span>
 
 				<span class="col pokemonnamecol">{this.renderName(pokemon.name, matchStart, matchEnd, tagStart)}</span>

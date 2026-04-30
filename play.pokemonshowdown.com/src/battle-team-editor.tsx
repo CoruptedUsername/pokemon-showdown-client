@@ -900,17 +900,20 @@ export class TeamEditorState extends PSModel {
 
 	static renderClipboard(cancelClipboard: () => void) {
 		if (!TeamEditorState.clipboard) return null;
-
+		let formatName = "";
+		if (TeamEditorState.clipboard.teams !== null) {
+			formatName = Object.values(TeamEditorState.clipboard.teams)[0].team.format;
+		}
 		const renderSet = (set: Dex.PokemonSet) => <div class="set">
 			<small>
-				<PSIcon pokemon={set} /> {set.name || set.species}
+				<PSIcon pokemon={set} mod={window.BattleTeambuilderTable.formats?.[formatName]?.mod} /> {set.name || set.species}
 				{set.ability && ` [${set.ability}]`}{set.item && ` @ ${set.item}`}
 				{} - {set.moves.join(' / ') || '(No moves)'}
 			</small>
 		</div>;
 		const renderTeam = (team: Team, sets: Dex.PokemonSet[]) => <div class="set"><small>
 			<strong>{team.name}</strong><br />
-			{sets.map(set => <PSIcon pokemon={set} />)}
+			{sets.map(set => <PSIcon pokemon={set} mod={window.BattleTeambuilderTable.formats?.[formatName]?.mod} />)}
 		</small></div>;
 
 		return <div class="infobox">
@@ -1778,7 +1781,7 @@ class TeamTextbox extends preact.Component<{
 
 						if (editor.narrow) {
 							return <div style={`top:${prevOffset + 1}px;left:5px;position:absolute;text-align:center;pointer-events:none`}>
-								<div><PSIcon pokemon={species.id} /></div>
+								<div><PSIcon pokemon={species.id} mod={editor.dex.modid} /></div>
 								{species.types.map(type => <div><PSIcon type={type} /></div>)}
 								<div><PSIcon item={set.item || null} /></div>
 							</div>;
@@ -2352,7 +2355,7 @@ class TeamWizard extends preact.Component<{
 				{editor.sets.map((curSet, i) => <li><button
 					class={`button picontab${cur(i)}`} onClick={this.setFocus} value={`${type}|${i}`}
 				>
-					<PSIcon pokemon={curSet} /><br />
+					<PSIcon pokemon={curSet} mod={editor.dex.modid} /><br />
 					{editor.getNickname(curSet)}
 				</button></li>)}
 				{editor.canAdd() && <li><button
@@ -3199,7 +3202,7 @@ class DetailsForm extends preact.Component<{
 									value={id} class={`button piconbtn${isCur ? ' cur' : ''}`}
 									style={{ padding: '2px' }} onClick={this.selectSprite}
 								>
-									<PSIcon pokemon={{ species: sp.name } as Dex.PokemonSet} />
+									<PSIcon pokemon={{ species: sp.name } as Dex.PokemonSet} mod={editor.dex.modid} />
 									<br />{sp.forme || sp.baseForme || sp.baseSpecies}
 								</button>;
 							});

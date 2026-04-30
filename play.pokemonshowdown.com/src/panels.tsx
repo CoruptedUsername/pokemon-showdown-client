@@ -927,11 +927,15 @@ export class PSView extends preact.Component {
 }
 
 export function PSIcon(
-	props: { pokemon: string | Pokemon | ServerPokemon | Dex.PokemonSet | null } |
+	props: { pokemon: string | Pokemon | ServerPokemon | Dex.PokemonSet | null, mod?: string | null } |
 		{ item: string | null } | { type: string, b?: boolean } | { category: string }
 ) {
 	if ('pokemon' in props) {
-		return <span class="picon" style={Dex.getPokemonIcon(props.pokemon)} />;
+		if (props.mod !== null) {
+			return <span class="picon" style={Dex.getPokemonIcon(props.pokemon, false, props.mod)} />;
+		} else {
+			return <span class="picon" style={Dex.getPokemonIcon(props.pokemon)} />;
+		}
 	}
 	if ('item' in props) {
 		return <span class="itemicon" style={Dex.getItemIcon(props.item)} />;

@@ -50,14 +50,96 @@ BattleTeambuilderTable.sprites = {};
 
 let modsWithSprites = []
 
+let oldSpritesFolderDeleted = false;
+
 for (const modDex in Dex.dexes) {
-	if (Dex.mod(modDex).data.Sprites) {
+	let hasSprites = Dex.mod(modDex).data.Sprites?.monSprites !== undefined ||
+		Dex.mod(modDex).data.Sprites?.itemSprites !== undefined ||
+		Dex.mod(modDex).data.Sprites?.typeSprites !== undefined
+	if (hasSprites) {
 		BattleTeambuilderTable.sprites[modDex] = {};
-		try {
-			fs.cpSync(`./caches/pokemon-showdown/data/mods/${modDex}/sprites`, `./play.pokemonshowdown.com/sprites/mods/${modDex}/sprites`, {recursive: true, force: true});
-		} catch (e) { }
-		for (const sprite of Object.keys(Dex.mod(modDex).data.Sprites)) {
-			BattleTeambuilderTable.sprites[modDex][sprite] = Dex.mod(modDex).data.Sprites[sprite];
+		if (!oldSpritesFolderDeleted) {
+			fs.rmSync('./play.pokemonshowdown.com/sprites/mods', {recursive: true, force: true});
+			oldSpritesFolderDeleted = true;
+		}
+		fs.cpSync(`./caches/pokemon-showdown/data/mods/${modDex}/sprites`, `./play.pokemonshowdown.com/sprites/mods/${modDex}`, {recursive: true, force: true});
+		if (Dex.mod(modDex).data.Sprites?.monSprites !== undefined) {
+			BattleTeambuilderTable.sprites[modDex]["monSpriteSettings"] = {
+				"backDistinction": Dex.mod(modDex).data.Sprites.monSprites.backDistinction,
+				"shinyDistinction": Dex.mod(modDex).data.Sprites.monSprites.shinyDistinction,
+				"femaleDistinction": Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction : false,
+				"defaultSpritesGen": Dex.mod(modDex).data.Sprites.monSprites.defaultSpritesGen,
+			}
+			BattleTeambuilderTable.sprites[modDex]["monSprites"] = {};
+			if (Dex.mod(modDex).data.Sprites.monSprites.autogenCustoms) {
+				console.log("Autogenning custom sprites for ", modDex);
+				let monsToGen = fs.readdirSync(`./play.pokemonshowdown.com/sprites/mods/${modDex}${Dex.mod(modDex).data.Sprites.monSprites.monsDirectory}`)
+				for (const mon of monsToGen) {
+					BattleTeambuilderTable.sprites[modDex]["monSprites"][toID(mon)] = {
+						"spriteType": "custom",
+						"path": Dex.mod(modDex).data.Sprites.monSprites.monsDirectory + "/" + mon,
+						"backDistinction": Dex.mod(modDex).data.Sprites.monSprites.backDistinction,
+						"shinyDistinction": Dex.mod(modDex).data.Sprites.monSprites.shinyDistinction,
+						"femaleDistinction": Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction : false,
+						"separateTeambuilderSprites": Dex.mod(modDex).data.Sprites.monSprites.separateTeambuilderSprites,
+					}
+				}
+			}
+			for (const mon in Dex.mod(modDex).data.Sprites.monSprites?.customSprites) {
+				if (typeof(Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon]) === "string") {
+					BattleTeambuilderTable.sprites[modDex]["monSprites"][mon] = {
+						"spriteType": "custom",
+						"path": Dex.mod(modDex).data.Sprites.monSprites.monsDirectory + Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon],
+						"backDistinction": Dex.mod(modDex).data.Sprites.monSprites.backDistinction,
+						"shinyDistinction": Dex.mod(modDex).data.Sprites.monSprites.shinyDistinction,
+						"femaleDistinction": Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction : false,
+						"separateTeambuilderSprites": Dex.mod(modDex).data.Sprites.monSprites.separateTeambuilderSprites,
+					}
+				} else {
+					BattleTeambuilderTable.sprites[modDex]["monSprites"][mon] = {
+						"spriteType": "custom",
+						"path": Dex.mod(modDex).data.Sprites.monSprites.monsDirectory + Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].spriteDirectory,
+						"backDistinction": Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].backDistinction ? Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].backDistinction: Dex.mod(modDex).data.Sprites.monSprites.backDistinction,
+						"shinyDistinction": Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].shinyDistinction ? Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].shinyDistinction: Dex.mod(modDex).data.Sprites.monSprites.shinyDistinction,
+						"femaleDistinction": Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].femaleDistinction: Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction : false,
+						"separateTeambuilderSprites": Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].separateTeambuilderSprites ? Dex.mod(modDex).data.Sprites.monSprites?.customSprites[mon].separateTeambuilderSprites: Dex.mod(modDex).data.Sprites.monSprites.separateTeambuilderSprites,
+					}
+
+				}
+			}
+			for (const mon in Dex.mod(modDex).data.Sprites.monSprites?.copySprites) {
+				if (typeof(Dex.mod(modDex).data.Sprites.monSprites?.copySprites[mon]) === "string") {
+					BattleTeambuilderTable.sprites[modDex]["monSprites"][mon] = {
+						"spriteType": "copy",
+						"copySpriteMon": toID(Dex.mod(modDex).data.Sprites.monSprites.copySprites[mon]),
+						"copySpriteGen": Dex.mod(modDex).data.Sprites.monSprites.defaultSpritesGen,
+						"backDistinction": Dex.mod(modDex).data.Sprites.monSprites.backDistinction,
+						"shinyDistinction": Dex.mod(modDex).data.Sprites.monSprites.shinyDistinction,
+						"femaleDistinction": Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction : false,
+					}
+				} else {
+					BattleTeambuilderTable.sprites[modDex]["monSprites"][mon] = {
+						"spriteType": "copy",
+						"copySpriteMon": toID(Dex.mod(modDex).data.Sprites.monSprites.copySprites[mon].copySpriteMon),
+						"copySpriteGen": Dex.mod(modDex).data.Sprites.monSprites.copySprites[mon].copySpriteGen ? Dex.mod(modDex).data.Sprites.monSprites.copySprites[mon].copySpriteGen : Dex.mod(modDex).data.Sprites.monSprites?.defaultSpritesGen,
+						"backDistinction": Dex.mod(modDex).data.Sprites.monSprites?.copySprites[mon].backDistinction ? Dex.mod(modDex).data.Sprites.monSprites?.copySprites[mon].backDistinction: Dex.mod(modDex).data.Sprites.monSprites.backDistinction,
+						"shinyDistinction": Dex.mod(modDex).data.Sprites.monSprites?.copySprites[mon].shinyDistinction ? Dex.mod(modDex).data.Sprites.monSprites?.copySprites[mon].shinyDistinction: Dex.mod(modDex).data.Sprites.monSprites.shinyDistinction,
+						"femaleDistinction": Dex.mod(modDex).data.Sprites.monSprites?.copySprites[mon].femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites?.copySprites[mon].femaleDistinction: Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction ? Dex.mod(modDex).data.Sprites.monSprites.femaleDistinction : false,
+					}
+				}
+			}
+		}
+		if (Dex.mod(modDex).data.Sprites?.itemSprites !== undefined) {
+			BattleTeambuilderTable.sprites[modDex]["itemSprites"] = {};
+			for (const item in Dex.mod(modDex).data.Sprites.itemSprites.items) {
+				BattleTeambuilderTable.sprites[modDex]["itemSprites"][item] = Dex.mod(modDex).data.Sprites.itemSprites.itemsDirectory + "/" + Dex.mod(modDex).data.Sprites.itemSprites.items[item];
+			}
+		}
+		if (Dex.mod(modDex).data.Sprites?.typeSprites !== undefined) {
+			BattleTeambuilderTable.sprites[modDex]["typeSprites"] = {};
+			for (const type in Dex.mod(modDex).data.Sprites.typeSprites.types) {
+				BattleTeambuilderTable.sprites[modDex]["typeSprites"][type] = Dex.mod(modDex).data.Sprites.typeSprites.typesDirectory + "/" + Dex.mod(modDex).data.Sprites.typeSprites.types[type];
+			}
 		}
 	}
 	if (Dex.mod(modDex).data.Scripts.teambuilders) {

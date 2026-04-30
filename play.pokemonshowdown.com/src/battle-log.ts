@@ -81,6 +81,7 @@ export class BattleLog {
 		elem.onscroll = this.onScroll;
 		elem.onclick = this.onClick;
 	}
+
 	onClick = (ev: Event) => {
 		let target = ev.target as HTMLElement | null;
 		while (target && target !== this.elem) {
@@ -96,19 +97,23 @@ export class BattleLog {
 			target = target.parentElement;
 		}
 	};
+
 	onScroll = () => {
 		const distanceFromBottom = this.elem.scrollHeight - this.elem.scrollTop - this.elem.clientHeight;
 		this.atBottom = (distanceFromBottom < 30);
 	};
+
 	reset() {
 		this.innerElem.innerHTML = '';
 		this.atBottom = true;
 		this.skippedLines = false;
 	}
+
 	destroy() {
 		this.elem.onscroll = null;
 		this.elem.innerHTML = '';
 	}
+
 	addSeekEarlierButton() {
 		if (this.skippedLines) return;
 		this.skippedLines = true;
@@ -122,6 +127,7 @@ export class BattleLog {
 		});
 		this.addNode(el);
 	}
+
 	add(args: Args, kwArgs?: KWArgs, preempt?: boolean, showTimestamps?: 'minutes' | 'seconds') {
 		if (kwArgs?.silent) return;
 		const battle = this.scene?.battle;
@@ -310,10 +316,10 @@ export class BattleLog {
 				let buf = Teams.export([set], battle.dex).replace(/\n/g, '<br />');
 				if (set.name && set.name !== set.species) {
 					buf = buf.replace(set.name, BattleLog.sanitizeHTML(
-						`<span class="picon" style="${Dex.getPokemonIcon(set.species)}"></span><br />${set.name}`));
+						`<span class="picon" style="${Dex.getPokemonIcon(set.species, false, battle.dex.modid)}"></span><br />${set.name}`));
 				} else {
 					buf = buf.replace(set.species,
-						`<span class="picon" style="${Dex.getPokemonIcon(set.species)}"></span><br />${set.species}`);
+						`<span class="picon" style="${Dex.getPokemonIcon(set.species, false, battle.dex.modid)}"></span><br />${set.species}`);
 				}
 				if (set.item) {
 					buf = buf.replace(set.item, `${set.item} <span class="itemicon" style="${Dex.getItemIcon(set.item)}"></span>`);
@@ -339,6 +345,7 @@ export class BattleLog {
 			this.joinLeave = null;
 		}
 	}
+
 	addBattleMessage(args: Args, kwArgs?: KWArgs) {
 		switch (args[0]) {
 		case 'warning':
@@ -394,6 +401,7 @@ export class BattleLog {
 			break;
 		}
 	}
+
 	addAFDMessage(args: Args, kwArgs: KWArgs = {}) {
 		if (!Dex.afdMode) return;
 		if (!this.battleParser || !this.scene) return;
@@ -906,9 +914,11 @@ export class BattleLog {
 		}
 		return false;
 	}
+
 	messageFromLog(line: string) {
 		this.message(...this.parseLogMessage(line));
 	}
+
 	textList(list: string[]) {
 		let message = '';
 		const listNoDuplicates: string[] = [];
@@ -944,27 +954,32 @@ export class BattleLog {
 			messages.filter(line => !line.startsWith('<small>[')).join('<br />'),
 		];
 	}
+
 	message(message: string, sceneMessage = message) {
 		this.scene?.message(sceneMessage);
 		this.addDiv('battle-history', message);
 	}
+
 	addNode(node: HTMLElement, preempt?: boolean) {
 		(preempt ? this.preemptElem : this.innerElem).appendChild(node);
 		if (this.atBottom) {
 			this.elem.scrollTop = this.elem.scrollHeight;
 		}
 	}
+
 	updateScroll = () => {
 		if (this.atBottom) {
 			this.elem.scrollTop = this.elem.scrollHeight;
 		}
 	};
+
 	addDiv(className: string, innerHTML: string, preempt?: boolean) {
 		const el = document.createElement('div');
 		el.className = className;
 		el.innerHTML = innerHTML;
 		this.addNode(el, preempt);
 	}
+
 	prependDiv(className: string, innerHTML: string, preempt?: boolean) {
 		const el = document.createElement('div');
 		el.className = className;
@@ -976,9 +991,11 @@ export class BattleLog {
 		}
 		this.updateScroll();
 	}
+
 	addSpacer() {
 		this.addDiv('spacer battle-history', '<br />');
 	}
+
 	changeUhtml(id: string, htmlSrc: string, forceAdd?: boolean) {
 		id = toID(id);
 		const classContains = ' uhtml-' + id + ' ';
@@ -1012,6 +1029,7 @@ export class BattleLog {
 			this.prependDiv('notice uhtml-' + id, BattleLog.sanitizeHTML(htmlSrc));
 		}
 	}
+
 	hideChatFrom(userid: ID, showRevealButton = true, lineCount = 0) {
 		const classStart = 'chat chatmessage-' + userid + ' ';
 		let nodes: HTMLElement[] = [];
@@ -1087,6 +1105,7 @@ export class BattleLog {
 		}
 		return this.escapeHTML(this.formatName(formatid, fixGen6));
 	}
+
 	static formatId(format: string): ID {
 		const atIndex = format.indexOf('@@@');
 		if (atIndex >= 0) {
@@ -1594,7 +1613,6 @@ export class BattleLog {
 
 				if (iconType) {
 					const className = getAttrib('class');
-
 					if (iconType === 'pokemon') {
 						setAttrib('class', 'picon' + (className ? ' ' + className : ''));
 						unsanitizedStyle = Dex.getPokemonIcon(iconValue);
