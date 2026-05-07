@@ -867,7 +867,7 @@ export const Dex = new class implements ModdedDex {
 			if (window.BattleTeambuilderTable.sprites[mod].monSprites[id].spriteType === "copy") {
 				id = toID(window.BattleTeambuilderTable.sprites[mod].monSprites[id].copySpriteMon);
 			} else {
-				customSpriteURL = `${window.BattleTeambuilderTable.sprites[mod].monSprites[id].path}/${id}Icon.png`;
+				customSpriteURL = `${window.BattleTeambuilderTable.sprites[mod].monSprites[id].path}/${id}icon.png`;
 				console.log(customSpriteURL);
 			}
 			hasChangedIcon = true;
