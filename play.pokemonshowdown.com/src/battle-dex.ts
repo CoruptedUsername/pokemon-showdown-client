@@ -647,7 +647,7 @@ export const Dex = new class implements ModdedDex {
 			facing = 'front';
 		} else {
 			dir = customOptions[0] ? 'back' : '';
-			facing = 'back';
+			facing = customOptions[0] ? 'back' : 'front';
 		}
 
 		// Decide which gen sprites to use.
