@@ -859,13 +859,14 @@ export const Dex = new class implements ModdedDex {
 			id = toID(pokemon.volatiles.formechange[1]);
 		}
 
+		console.trace();
+
 		let hasChangedIcon = false;
 		if (mod && window.BattleTeambuilderTable.sprites?.[mod]?.monSprites?.[id]) {
 			if (window.BattleTeambuilderTable.sprites[mod].monSprites[id].spriteType === "copy") {
 				id = toID(window.BattleTeambuilderTable.sprites[mod].monSprites[id].copySpriteMon);
 			} else {
 				customSpriteURL = `${window.BattleTeambuilderTable.sprites[mod].monSprites[id].path}/${id}icon.png`;
-				console.trace();
 			}
 			hasChangedIcon = true;
 		}
