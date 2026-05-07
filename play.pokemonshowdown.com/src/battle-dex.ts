@@ -644,9 +644,9 @@ export const Dex = new class implements ModdedDex {
 		if (isFront) {
 			spriteData.isFrontSprite = true;
 			dir = '';
-			facing = customOptions[0] ? 'front' : 'back';
+			facing = 'front';
 		} else {
-			dir = '-back';
+			dir = customOptions[0] ? 'back' : '';
 			facing = 'back';
 		}
 
