@@ -1568,6 +1568,7 @@ export class Species implements Effect {
 	readonly isNonstandard: string | null;
 	readonly unreleasedHidden: boolean | 'Past';
 	readonly changesFrom: string | undefined;
+	readonly isModded: boolean | undefined;
 
 	constructor(id: ID, name: string, data: any) {
 		if (!data || typeof data !== 'object') data = {};
@@ -1653,6 +1654,7 @@ export class Species implements Effect {
 				this.gen = 1;
 			}
 		}
+		this.isModded = data.isModded || false;
 	}
 }
 

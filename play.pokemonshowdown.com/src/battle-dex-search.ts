@@ -1152,14 +1152,11 @@ class BattleItemSearch extends BattleTypedSearch<'item'> {
 			if (item.itemUser?.includes(speciesName)) speciesSpecific.push(row);
 			if (abilityItem === item.id) abilitySpecific.push(row);
 			if (item.relevantTiers) {
-				console.log("Check 1");
 				if (item.relevantTiers.includes(this.dex.species.get(this.species).tier)) {
 					tierSpecific.push(row);
-					console.log(row);
 				}
 			}
 		}
-		console.log(tierSpecific);
 		if (speciesSpecific.length) {
 			return [
 				['header', "Specific to " + speciesName],

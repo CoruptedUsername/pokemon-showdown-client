@@ -322,7 +322,7 @@ export class BattleLog {
 						`<span class="picon" style="${Dex.getPokemonIcon(set.species, false, battle.dex.modid)}"></span><br />${set.species}`);
 				}
 				if (set.item) {
-					buf = buf.replace(set.item, `${set.item} <span class="itemicon" style="${Dex.getItemIcon(set.item)}"></span>`);
+					buf = buf.replace(set.item, `${set.item} <span class="itemicon" style="${Dex.getItemIcon(set.item, battle.dex.modid)}"></span>`);
 				}
 				return buf;
 			}).join('');
@@ -1609,8 +1609,8 @@ export class BattleLog {
 						break;
 					}
 				}
+				let aaa = this.players;
 				tagName = 'span';
-
 				if (iconType) {
 					const className = getAttrib('class');
 					if (iconType === 'pokemon') {

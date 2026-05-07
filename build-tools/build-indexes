@@ -142,9 +142,9 @@ for (const modDex in Dex.dexes) {
 			}
 		}
 	}
-	if (Dex.mod(modDex).data.Scripts.teambuilders) {
-		for (const builder of Object.keys(Dex.mod(modDex).data.Scripts.teambuilders)) {
-			const builderData = Dex.mod(modDex).data.Scripts.teambuilders[builder];
+	if (Dex.mod(modDex).data.Teambuilders) {
+		for (const builder of Object.keys(Dex.mod(modDex).data.Teambuilders)) {
+			const builderData = Dex.mod(modDex).data.Teambuilders[builder];
 			BattleTeambuilderTable[builder] = {};
 			BattleTeambuilderTable[builder].mod = modDex;
 			BattleTeambuilderTable[builder].formatType = builderData.formatType;
@@ -177,7 +177,7 @@ for (const modDex in Dex.dexes) {
 
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
-		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+		if (Dex.mod(modDex).data.Teambuilders) {
 			BuilderMods.push(modDex);
 		}
 	}
@@ -401,7 +401,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			continue;
 		}
 		const gen = BattleTeambuilderTable[tableKey]["mod"];
-		const genTable = Dex.mod(gen).data.Scripts.teambuilders[tableKey];
+		const genTable = Dex.mod(gen).data.Teambuilders[tableKey];
 		const pokemon = Object.keys(Dex.mod(gen).data.Pokedex);
 		pokemon.sort();
 		const tierTable = {};
@@ -450,7 +450,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 			tiers.push(...tierTable[tier]);
 		}
 
-		const itemList = Object.keys(Dex.data.Items);
+		const itemList = Object.keys(Dex.mod(gen).data.Items);
 		itemList.sort();
 
 		const greatItems = [['header', "Popular items"]];
@@ -861,7 +861,7 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	buf += `exports.BattleTeambuilderTable = JSON.parse('${JSON.stringify(BattleTeambuilderTable).replace(/['\\]/g, "\\$&")}');\n\n`;
 
 	fs.writeFileSync('play.pokemonshowdown.com/data/teambuilder-tables.js', buf);
-	fs.writeFileSync('play.pokemonshowdown.com/data/teambuilder-tables.json', JSON.stringify(BattleTeambuilderTable).replace(/['\\]/g, "\\$&"));
+	fs.writeFileSync('play.pokemonshowdown.com/data/teambuilder-tables.json', JSON.stringify(BattleTeambuilderTable));
 }
 
 console.log("DONE");
@@ -886,7 +886,7 @@ process.stdout.write("Building `data/pokedex.js`... ");
 
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
-		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+		if (Dex.mod(modDex).data.Teambuilders) {
 			BuilderMods.push(modDex);
 		}
 	}
@@ -897,6 +897,7 @@ process.stdout.write("Building `data/pokedex.js`... ");
 			}
 			else {
 				Pokedex[id] = Dex.mod(gen).data.Pokedex[id];
+				Pokedex[id].isModded = true;
 			}
 		}
 	}
@@ -925,7 +926,7 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
-		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+		if (Dex.mod(modDex).data.Teambuilders) {
 			BuilderMods.push(modDex);
 		}
 	}
@@ -959,7 +960,7 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
-		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+		if (Dex.mod(modDex).data.Teambuilders) {
 			BuilderMods.push(modDex);
 		}
 	}
@@ -991,7 +992,7 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
-		if (Dex.mod(modDex).data.Scripts.teambuilders) {
+		if (Dex.mod(modDex).data.Teambuilders) {
 			BuilderMods.push(modDex);
 		}
 	}

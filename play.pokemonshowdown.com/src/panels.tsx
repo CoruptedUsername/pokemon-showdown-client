@@ -928,7 +928,7 @@ export class PSView extends preact.Component {
 
 export function PSIcon(
 	props: { pokemon: string | Pokemon | ServerPokemon | Dex.PokemonSet | null, mod?: string | null } |
-		{ item: string | null } | { type: string, b?: boolean } | { category: string }
+		{ item: string | null, mod?: string | null } | { type: string, b?: boolean, mod?: string | null } | { category: string }
 ) {
 	if ('pokemon' in props) {
 		if (props.mod !== null) {
@@ -938,12 +938,20 @@ export function PSIcon(
 		}
 	}
 	if ('item' in props) {
-		return <span class="itemicon" style={Dex.getItemIcon(props.item)} />;
+		if (props.mod !== null) {
+			return <span class="itemicon" style={Dex.getItemIcon(props.item, props.mod)} />;
+		} else {
+			return <span class="itemicon" style={Dex.getItemIcon(props.item)} />;
+		}
 	}
 	if ('type' in props) {
 		let type = Dex.types.get(props.type).name;
 		if (!type) type = '???';
 		let sanitizedType = type.replace(/\?/g, '%3f');
+		let typeID = toID(type);
+		if (props.mod && window.BattleTeambuilderTable.sprites[props.mod]?.typeSprites?.[typeID]) {
+			return <img src={`/sprites/mods/${props.mod}${window.BattleTeambuilderTable.sprites[props.mod]?.typeSprites[typeID]}`} alt={type} height="14" width="32" class={`pixelated${props.b ? ' b' : ''}`} style="vertical-align:middle" />;
+		}
 		return <img
 			src={`${Dex.resourcePrefix}sprites/types/${sanitizedType}.png`} alt={type}
 			height="14" width="32" class={`pixelated${props.b ? ' b' : ''}`} style="vertical-align:middle"

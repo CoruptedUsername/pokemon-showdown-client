@@ -1702,11 +1702,11 @@ class TeamTextbox extends preact.Component<{
 			</span>
 			{editor.gen === 9 ? (
 				<span class="detailcell">
-					<label>Tera</label><PSIcon type={set.teraType || species.requiredTeraType || species.types[0]} />
+					<label>Tera</label><PSIcon type={set.teraType || species.requiredTeraType || species.types[0]} mod = { editor.dex.modid } />
 				</span>
 			) : editor.hpTypeMatters(set) ? (
 				<span class="detailcell">
-					<label>H. Power</label><PSIcon type={editor.getHPType(set)} />
+					<label>H. Power</label><PSIcon type={editor.getHPType(set)} mod={editor.dex.modid} />
 				</span>
 			) : (
 				<span class="detailcell">
@@ -1782,8 +1782,8 @@ class TeamTextbox extends preact.Component<{
 						if (editor.narrow) {
 							return <div style={`top:${prevOffset + 1}px;left:5px;position:absolute;text-align:center;pointer-events:none`}>
 								<div><PSIcon pokemon={species.id} mod={editor.dex.modid} /></div>
-								{species.types.map(type => <div><PSIcon type={type} /></div>)}
-								<div><PSIcon item={set.item || null} /></div>
+								{species.types.map(type => <div><PSIcon type={type} mod={editor.dex.modid} /></div>)}
+								<div><PSIcon item={set.item || null} mod={editor.dex.modid} /></div>
 							</div>;
 						}
 						return [<div
@@ -1793,7 +1793,7 @@ class TeamTextbox extends preact.Component<{
 								Dex.getTeambuilderSprite(set, editor.dex)
 							}
 						>
-							<div>{species.types.map(type => <PSIcon type={type} />)}<PSIcon item={set.item || null} /></div>
+							<div>{species.types.map(type => <PSIcon type={type} mod={editor.dex.modid} />)}<PSIcon item={set.item || null} mod={editor.dex.modid} /></div>
 						</div>, <div style={`top:${prevOffset + statsDetailsOffset}px;right:9px;position:absolute`}>
 							{this.renderStats(set, i)}
 						</div>, <div style={`top:${prevOffset + statsDetailsOffset}px;right:145px;position:absolute`}>
@@ -2006,7 +2006,7 @@ class TeamWizard extends preact.Component<{
 						<button class={`button button-middle${cur('details')}`} onClick={this.setFocus} value={`details|${i}`}>
 							<span class="detailcell">
 								<strong class="label">Types</strong> {}
-								{species.types.map(type => <div><PSIcon type={type} /></div>)}
+								{species.types.map(type => <div><PSIcon type={type} mod={editor.dex.modid} /></div>)}
 							</span>
 							<span class="detailcell">
 								<strong class="label">Level</strong> {}
@@ -2026,11 +2026,11 @@ class TeamWizard extends preact.Component<{
 							</span>}
 							{editor.gen === 9 && <span class="detailcell">
 								<strong class="label">Tera</strong> {}
-								<PSIcon type={set.teraType || species.requiredTeraType || species.types[0]} />
+								<PSIcon type={set.teraType || species.requiredTeraType || species.types[0]} mod={editor.dex.modid} />
 							</span>}
 							{editor.hpTypeMatters(set) && <span class="detailcell">
 								<strong class="label">H.P.</strong> {}
-								<PSIcon type={editor.getHPType(set)} />
+								<PSIcon type={editor.getHPType(set)} mod={editor.dex.modid} />
 							</span>}
 						</button>
 					</div></td>
@@ -2063,7 +2063,7 @@ class TeamWizard extends preact.Component<{
 					<td class="set-item"><div class="border-collapse">
 						<button class={`button button-middle${cur('item')}`} onClick={this.setFocus} value={`item|${i}`}>
 							{(editor.gen >= 2 || set.item) && <>
-								{set.item && <PSIcon item={set.item} />}
+								{set.item && <PSIcon item={set.item} mod={editor.dex.modid} />}
 								<strong class="label">Item</strong> {}
 								{set.item || <em>(no item)</em>}
 							</>}

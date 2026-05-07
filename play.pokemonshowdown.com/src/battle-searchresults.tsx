@@ -179,7 +179,7 @@ export class PSSearchResults extends preact.Component<{
 			data-target="push" data-entry={`item|${item.name}`}
 		>
 			<span class="col itemiconcol">
-				<span class="pixelated" style={Dex.getItemIcon(item)}></span>
+				<span class="pixelated" style={Dex.getItemIcon(item, search.dex.modid)}></span>
 			</span>
 
 			<span class="col namecol">{id ? this.renderName(item.name, matchStart, matchEnd) : <i>(no item)</i>}</span>

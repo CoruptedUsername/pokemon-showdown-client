@@ -635,7 +635,7 @@ export class BattleTooltips {
 
 		text += `<h2>${move.name}<br />`;
 
-		text += Dex.getTypeIcon(moveType);
+		text += Dex.getTypeIcon(moveType, this.battle.dex.modid);
 		text += ` ${Dex.getCategoryIcon(category)}</h2>`;
 
 		// Check if there are more than one active Pokémon to check for multiple possible BPs.
@@ -693,7 +693,7 @@ export class BattleTooltips {
 				calls = 'Swift';
 			}
 			let calledMove = this.battle.dex.moves.get(calls);
-			text += `Calls ${Dex.getTypeIcon(this.getMoveType(calledMove, value)[0])} ${calledMove.name}`;
+			text += `Calls ${Dex.getTypeIcon(this.getMoveType(calledMove, value)[0]), this.battle.dex.modid} ${calledMove.name}`;
 		}
 
 		text += `<p>Accuracy: ${accuracy}</p>`;
@@ -857,11 +857,11 @@ export class BattleTooltips {
 			} else if (clientPokemon?.volatiles.typechange || clientPokemon?.volatiles.typeadd) {
 				text += `<small>(Type changed)</small><br />`;
 			}
-			text += `<span class="textaligned-typeicons">${types.map(type => Dex.getTypeIcon(type)).join(' ')}</span>`;
+			text += `<span class="textaligned-typeicons">${types.map(type => Dex.getTypeIcon(type, this.battle.dex.modid)).join(' ')}</span>`;
 			if (pokemon.terastallized) {
-				text += `&nbsp; &nbsp; <small>(base: <span class="textaligned-typeicons">${this.getPokemonTypes(pokemon, true).map(type => Dex.getTypeIcon(type)).join(' ')}</span>)</small>`;
+				text += `&nbsp; &nbsp; <small>(base: <span class="textaligned-typeicons">${this.getPokemonTypes(pokemon, true).map(type => Dex.getTypeIcon(type, this.battle.dex.modid)).join(' ')}</span>)</small>`;
 			} else if (knownPokemon.teraType && !this.battle.rules['Terastal Clause']) {
-				text += `&nbsp; &nbsp; <small>(Tera Type: <span class="textaligned-typeicons">${Dex.getTypeIcon(knownPokemon.teraType)}</span>)</small>`;
+				text += `&nbsp; &nbsp; <small>(Tera Type: <span class="textaligned-typeicons">${Dex.getTypeIcon(knownPokemon.teraType, this.battle.dex.modid)}</span>)</small>`;
 			}
 			text += `</h2>`;
 		}

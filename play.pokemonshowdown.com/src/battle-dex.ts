@@ -594,14 +594,34 @@ export const Dex = new class implements ModdedDex {
 			}
 			pokemon = pokemon.getSpeciesForme() + (isGigantamax ? '-Gmax' : '');
 		}
-		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite) {
-			pokemon = window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite.copySpriteMon.toString;
-			mechanicsGen = window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite.copySpriteGen;
-			copySprite = true;
-		}
+		let customOptions = [true, true, true];
 		let spriteOverride = false;
-		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)].customSprite) {
-			spriteOverride = true;
+		if (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]) {
+			if (window.BattleTeambuilderTable.sprites?.[options.mod].monSprites?.[toID(pokemon)]) {
+				if (window.BattleTeambuilderTable.sprites?.[options.mod]?.monSprites?.[toID(pokemon)].spriteType === "copy") {
+					pokemon = window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].copySpriteMon;
+					mechanicsGen = window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].copySpriteGen;
+					copySprite = true;
+					customOptions = [
+						window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].backDistinction,
+						window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].shinyDistinction,
+						window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].femaleDistinction
+					];
+				} else {
+					spriteOverride = true;
+					customOptions = [
+						window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].backDistinction,
+						window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].shinyDistinction,
+						window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].femaleDistinction
+					];
+				}
+			} else {
+				customOptions = [
+					window.BattleTeambuilderTable.sprites[options.mod].monSpriteSettings.backDistinction,
+					window.BattleTeambuilderTable.sprites[options.mod].monSpriteSettings.shinyDistinction,
+					window.BattleTeambuilderTable.sprites[options.mod].monSpriteSettings.femaleDistinction
+				];
+			}
 		}
 		// @ts-ignore Throws type error when no such error exists
 		const species = Dex.species.get(pokemon);
@@ -616,12 +636,12 @@ export const Dex = new class implements ModdedDex {
 			pixelated: true,
 			isFrontSprite: false,
 			cryurl: '',
-			shiny: options.shiny,
+			shiny: options.shiny && customOptions[1],
 		};
 		let name = species.spriteid;
 		let dir;
 		let facing;
-		if (isFront || (options.mod && window.BattleTeambuilderTable.sprites?.[options.mod]?.[toID(pokemon)]?.copySprite?.backSpriteDistinction === false)) {
+		if (isFront || !customOptions[0]) {
 			spriteData.isFrontSprite = true;
 			dir = '';
 			facing = 'front';
@@ -731,7 +751,7 @@ export const Dex = new class implements ModdedDex {
 			}
 			for (const [animationData, animDir] of animationArray) {
 				if (!animationData) continue;
-				if (animationData[facing + 'f'] && options.gender === 'F') facing += 'f';
+				if (animationData[facing + 'f'] && options.gender === 'F' && customOptions[2]) facing += 'f';
 				if (!animationData[facing]) continue;
 				if (facing.endsWith('f')) name += '-f';
 				if (spriteData.gen >= 6) spriteData.pixelated = false;
@@ -744,22 +764,7 @@ export const Dex = new class implements ModdedDex {
 			}
 		}
 		if (spriteOverride && options.mod) {
-			dir = `/sprites/mods/${options.mod}/${window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)].customSprite.spriteDirectory}/`;
-			let spriteUrl = '';
-			const spriteType = (options.gender == "F" && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.femaleFrontSprite  ? 1 : 0) +
-				(options.shiny && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.shinyFrontSprite ? 2 : 0) +
-				(!spriteData.isFrontSprite && window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.backSprite ? 4 : 0);
-			switch (spriteType) {
-				case 0: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.frontSprite; break;
-				case 1: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.femaleFrontSprite; break;
-				case 2: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.shinyFrontSprite; break;
-				case 3: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.shinyFemaleFrontSprite; break;
-				case 4: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.backSprite; break;
-				case 5: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.femaleBackSprite; break;
-				case 6: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.shinyBackSprite; break;
-				case 7: spriteUrl = window.BattleTeambuilderTable.sprites[options.mod][toID(pokemon)]?.customSprite?.shinyFemaleBackSprite; break;
-			}
-			spriteData.url = dir + spriteUrl;
+			spriteData.url = `/sprites/mods/${options.mod}${window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].path}/${toID(pokemon)}` + (customOptions[0] ? "Back" : "") + (customOptions[1] ? "Shiny" : "") + (customOptions[2] ? "Female" : "") + ".png";
 		}
 		if (!animatedSprite && !spriteOverride) {
 			// There is no entry or enough data in pokedex-mini.js
@@ -768,7 +773,7 @@ export const Dex = new class implements ModdedDex {
 
 			// Gender differences don't exist prior to Gen 4,
 			// so there are no sprites for it
-			if (spriteData.gen >= 4 && miscData['frontf'] && options.gender === 'F') {
+			if (spriteData.gen >= 4 && miscData['frontf'] && options.gender === 'F' && customOptions[2]) {
 				name += '-f';
 			}
 				spriteData.url += dir + '/' + name + '.png';
@@ -864,8 +869,7 @@ export const Dex = new class implements ModdedDex {
 			hasChangedIcon = true;
 		}
 
-		if (!hasChangedIcon && mod !== undefined && Dex.species.get(id).num) {
-			console.log(Dex.mod(toID("gen9")).species.get(id));
+		if (!hasChangedIcon && mod !== undefined && Dex.species.get(id).isModded) {
 			id = toID("");
 		}
 
@@ -1002,8 +1006,18 @@ export const Dex = new class implements ModdedDex {
 		}
 	}
 
-	getItemIcon(item: any) {
+	getItemIcon(item: any, modid?: string) {
 		let num = 0;
+		let itemName = "";
+		if (typeof item === "string" || !item) {
+			itemName = item;
+		} else {
+			itemName = item.name;
+		}
+		itemName = toID(itemName);
+		if (modid && window.BattleTeambuilderTable.sprites[modid]?.itemSprites?.[itemName]) {
+			return `background:transparent url(/sprites/mods/${modid}/${window.BattleTeambuilderTable.sprites[modid]?.itemSprites[itemName]})`;
+		}
 		if (typeof item === 'string' && window.BattleItems) item = window.BattleItems[toID(item)];
 		if (item?.spritenum) num = item.spritenum;
 
@@ -1012,10 +1026,14 @@ export const Dex = new class implements ModdedDex {
 		return `background:transparent url(${Dex.resourcePrefix}sprites/itemicons-sheet.png?v1) no-repeat scroll -${left}px -${top}px`;
 	}
 
-	getTypeIcon(type: string | null, b?: boolean) { // b is just for utilichart.js
+	getTypeIcon(type: string | null, b?: boolean, modid?: string) { // b is just for utilichart.js
 		type = this.types.get(type).name;
 		if (!type) type = '???';
 		let sanitizedType = type.replace(/\?/g, '%3f');
+		let typeID = toID(type);
+		if (modid && window.BattleTeambuilderTable.sprites[modid]?.typeSprites?.[typeID]) {
+			return `<img src="/sprites/mods/${modid}${window.BattleTeambuilderTable.sprites[modid]?.typeSprites[typeID]}" alt="${type}" height="14" width="32" class="pixelated${b ? ' b' : ''}" />`;
+		}
 		return `<img src="${Dex.resourcePrefix}sprites/types/${sanitizedType}.png" alt="${type}" height="14" width="32" class="pixelated${b ? ' b' : ''}" />`;
 	}
 
