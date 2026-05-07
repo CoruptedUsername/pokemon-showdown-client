@@ -213,6 +213,7 @@ class SetBlock extends preact.Component<{
 					src={spriteData.url}
 					width={spriteData.w}
 					height={spriteData.h}
+					style={`transform: scaleX(${spriteData.shouldFlip ? -1 : 1})`}
 				/>
 				{set.item ? <PSIcon item={set.item} /> : <></>}
 			</div>

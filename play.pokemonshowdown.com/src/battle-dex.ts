@@ -198,6 +198,7 @@ export interface SpriteData {
 	isFrontSprite?: boolean;
 	cryurl?: string;
 	shiny?: boolean;
+	shouldFlip?: boolean;
 }
 
 export interface TeambuilderSpriteData {
@@ -637,6 +638,7 @@ export const Dex = new class implements ModdedDex {
 			isFrontSprite: false,
 			cryurl: '',
 			shiny: options.shiny && customOptions[1],
+			shouldFlip: !isFront && !customOptions[0],
 		};
 		let name = species.spriteid;
 		let dir;
