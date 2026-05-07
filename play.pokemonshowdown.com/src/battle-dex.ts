@@ -845,6 +845,9 @@ export const Dex = new class implements ModdedDex {
 			return `background:transparent url(${Dex.resourcePrefix}sprites/pokemonicons-pokeball-sheet.png) no-repeat scroll -80px 4px`;
 		}
 
+		console.log(pokemon);
+		console.log(mod);
+
 		let id = toID("");
 		let customSpriteURL = "";
 		if (!pokemon) pokemon = null;
