@@ -641,7 +641,7 @@ export const Dex = new class implements ModdedDex {
 		let name = species.spriteid;
 		let dir;
 		let facing;
-		if (isFront || !customOptions[0]) {
+		if (isFront) {
 			spriteData.isFrontSprite = true;
 			dir = '';
 			facing = 'front';
@@ -858,8 +858,6 @@ export const Dex = new class implements ModdedDex {
 			// @ts-expect-error safe, but too lazy to cast
 			id = toID(pokemon.volatiles.formechange[1]);
 		}
-
-		console.trace();
 
 		let hasChangedIcon = false;
 		if (mod && window.BattleTeambuilderTable.sprites?.[mod]?.monSprites?.[id]) {
