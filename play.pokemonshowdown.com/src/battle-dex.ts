@@ -845,9 +845,6 @@ export const Dex = new class implements ModdedDex {
 			return `background:transparent url(${Dex.resourcePrefix}sprites/pokemonicons-pokeball-sheet.png) no-repeat scroll -80px 4px`;
 		}
 
-		console.log(pokemon);
-		console.log(mod);
-
 		let id = toID("");
 		let customSpriteURL = "";
 		if (!pokemon) pokemon = null;
@@ -868,7 +865,7 @@ export const Dex = new class implements ModdedDex {
 				id = toID(window.BattleTeambuilderTable.sprites[mod].monSprites[id].copySpriteMon);
 			} else {
 				customSpriteURL = `${window.BattleTeambuilderTable.sprites[mod].monSprites[id].path}/${id}icon.png`;
-				console.log(customSpriteURL);
+				console.trace();
 			}
 			hasChangedIcon = true;
 		}
