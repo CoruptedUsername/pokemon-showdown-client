@@ -757,6 +757,7 @@ export class BattleScene implements BattleSceneStub {
 	}
 	updateLeftSidebar() {
 		const side = this.battle.nearSide;
+		console.log(this.battle.dex.modid);
 
 		if (side.ally) {
 			const side2 = side.ally;
