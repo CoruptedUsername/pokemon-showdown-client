@@ -97,6 +97,7 @@ export class Pokemon implements PokemonDetails, PokemonHealth {
 	prevItemEffect = '';
 	terastallized = '';
 	teraType = '';
+	moddedType: Dex.TypeName[] = [];
 
 	boosts: { [stat: string]: number } = {};
 	status: Dex.StatusName | 'tox' | '' | '???' = '';
@@ -236,7 +237,7 @@ export class Pokemon implements PokemonDetails, PokemonHealth {
 				}
 				// parse the absolute health information
 				let ret = this.healthParse(hpstring);
-				if (ret && (ret[1] === 100)) {
+				if (ret?.[1] === 100) {
 					// support for old replays with nearest-100th damage and health
 					return [damage, 100, damage];
 				}
@@ -364,7 +365,11 @@ export class Pokemon implements PokemonDetails, PokemonHealth {
 			if (ppUsed[0] < 0) ppUsed[0] = 0;
 			if (ppUsed[1] < 0) ppUsed[1] = 0;
 			const move = this.side.battle.dex.moves.get(entry[0]);
-			const maxpp = (move.pp === 1 || move.noPPBoosts ? move.pp : move.pp * 8 / 5);
+			let maxpp = (move.pp === 1 || move.noPPBoosts ? move.pp : move.pp * 8 / 5);
+			if (this.side.battle.tier.includes('Champions')) {
+				maxpp = move.pp > 20 ? 20 : move.pp;
+				maxpp = move.pp === 1 || move.noPPBoosts ? move.pp : (move.pp / 5 + 1) * 4;
+			}
 			if (ppUsed[0] > maxpp) ppUsed[0] = maxpp;
 			if (ppUsed[0] < ppUsed[1]) ppUsed[0] = ppUsed[1];
 			if (ppUsed[0] === ppUsed[1]) ppUsed = ppUsed[0];
@@ -506,6 +511,8 @@ export class Pokemon implements PokemonDetails, PokemonHealth {
 			types = [this.terastallized as Dex.TypeName];
 		} else if (this.volatiles.typechange) {
 			types = this.volatiles.typechange[1].split('/');
+		} else if (this.moddedType.length) {
+			types = this.moddedType;
 		} else {
 			types = this.getSpecies(serverPokemon).types;
 		}
@@ -535,7 +542,7 @@ export class Pokemon implements PokemonDetails, PokemonHealth {
 		if (item === 'ironball') {
 			return true;
 		}
-		if (ability === 'levitate') {
+		if (ability === 'levitate' || ability === 'eelevate') {
 			return false;
 		}
 		if (this.volatiles['magnetrise'] || this.volatiles['telekinesis']) {
@@ -601,11 +608,8 @@ export class Pokemon implements PokemonDetails, PokemonHealth {
 			let ratio = (range[0] + range[1]) / 2;
 			return Math.round(maxWidth * ratio) || 1;
 		}
-		let percentage = Math.ceil(100 * this.hp / this.maxhp);
-		if ((percentage === 100) && (this.hp < this.maxhp)) {
-			percentage = 99;
-		}
-		return percentage * maxWidth / 100;
+		const width = Math.round(this.hp / this.maxhp * maxWidth) || 1;
+		return this.hp < this.maxhp && width === maxWidth ? maxWidth - 1 : width;
 	}
 	getHPText(precision = 1) {
 		return Pokemon.getHPText(this, this.side.battle.reportExactHP, precision);
@@ -700,7 +704,7 @@ export class Side {
 			this.setAvatar(avatar);
 		} else {
 			this.rollTrainerSprites();
-			if (this.foe && this.avatar === this.foe.avatar) this.rollTrainerSprites();
+			if (this.avatar === this.foe?.avatar) this.rollTrainerSprites();
 		}
 	}
 	addSideCondition(effect: Dex.Effect, persist: boolean) {
@@ -944,6 +948,9 @@ export class Side {
 		}
 		pokemon.statusData.toxicTurns = 0;
 		if (this.battle.gen === 5) pokemon.statusData.sleepTurns = 0;
+		if (this.battle.tier.includes('Champions')) {
+			pokemon.timesAttacked = 0;
+		}
 		this.lastPokemon = pokemon;
 		this.active[slot] = null;
 
@@ -1030,6 +1037,7 @@ export interface ServerPokemon extends PokemonDetails, PokemonHealth {
 	condition: string;
 	active: boolean;
 	reviving: boolean;
+	commanding: boolean;
 	/** unboosted stats */
 	stats: {
 		atk: number,
@@ -2638,6 +2646,10 @@ export class Battle {
 					poke.copyTypesFrom(ofpoke);
 				} else {
 					const types = Dex.sanitizeName(args[3] || '???');
+					// Kind of a hack/hardcode protocol for now due to time constraints, should be expanded upon later
+					if (fromeffect.id.startsWith('format')) {
+						poke.moddedType = types.split('/') as Dex.TypeName[];
+					}
 					poke.removeVolatile('typeadd' as ID);
 					poke.addVolatile('typechange' as ID, types);
 					if (!kwArgs.silent) {
@@ -3505,8 +3517,8 @@ export class Battle {
 			if (this.tier.includes('Super Staff Bros')) {
 				this.dex = Dex.mod('gen9ssb' as ID);
 			}
-			if (this.tier.includes(`Legends`)) {
-				this.dex = Dex.mod('gen9legendsou' as ID);
+			if (this.tier.includes(`Champions`)) {
+				this.dex = Dex.mod('champions' as ID);
 			}
 			this.log(args);
 			break;
@@ -3991,7 +4003,7 @@ export class Battle {
 		let interruptionCount: number;
 		do {
 			// modified in this.run() but idk how to tell TS that
-			this.waitForAnimations = true as this['waitForAnimations'];
+			this.waitForAnimations = true;
 			if (this.currentStep >= this.stepQueue.length) {
 				this.atQueueEnd = true;
 				if (!this.ended && this.isReplay) this.prematureEnd();

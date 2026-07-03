@@ -157,12 +157,14 @@ export const Teams = new class {
 
 			// name
 			j = buf.indexOf('|', i);
-			const name = buf.substring(i, j);
+			let name = buf.substring(i, j);
 			i = j + 1;
 
 			// species
 			j = buf.indexOf('|', i);
-			const species = Dex.species.get(buf.substring(i, j) || name);
+			const speciesName = buf.substring(i, j);
+			const species = Dex.species.get(speciesName || name);
+			if (!speciesName) name = species.baseSpecies;
 			set.species = species.name;
 			if (species.baseSpecies !== name) set.name = name;
 			i = j + 1;
@@ -188,8 +190,9 @@ export const Teams = new class {
 
 			// nature
 			j = buf.indexOf('|', i);
-			set.nature = buf.substring(i, j) as Dex.NatureName;
-			if (set.nature as any === 'undefined') delete set.nature;
+			const nature = buf.substring(i, j);
+			set.nature = nature.charAt(0).toUpperCase() + nature.slice(1) as Dex.NatureName;
+			if (set.nature as any === 'Undefined') delete set.nature;
 			i = j + 1;
 
 			// evs

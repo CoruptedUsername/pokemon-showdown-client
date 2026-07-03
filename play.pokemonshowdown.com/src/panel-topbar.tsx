@@ -10,8 +10,10 @@
  */
 
 import preact from "../js/lib/preact";
-import { Config, PS, type PSRoom, type RoomID } from "./client-main";
-import { NARROW_MODE_HEADER_WIDTH, PSView, VERTICAL_HEADER_WIDTH } from "./panels";
+import {
+	Config, NARROW_MODE_HEADER_WIDTH, PS, type PSRoom, type RoomID, VERTICAL_HEADER_WIDTH,
+} from "./client-main";
+import { PSView } from "./panels";
 import type { Battle } from "./battle";
 import { BattleLog } from "./battle-log"; // optional
 
@@ -104,15 +106,15 @@ export class PSHeader extends preact.Component {
 		}
 		return { icon, title };
 	}
-	static renderRoomTab(id: RoomID, noAria?: boolean) {
+	static renderRoomTab(id: RoomID, noAria?: boolean, includeMiniNotifications = true) {
 		const room = PS.rooms[id];
 		if (!room) return null;
 		const closable = (id === '' || id === 'rooms' ? '' : ' closable');
-		const cur = PS.isVisible(room) ? ' cur' : '';
+		const cur = PS.isVisiblePanel(room) ? ' cur' : '';
 		let notifying = room.isSubtleNotifying ? ' subtle-notifying' : '';
 		let hoverTitle = '';
 		let notifications = room.notifications;
-		if (id === '') {
+		if (id === '' && includeMiniNotifications) {
 			for (const roomid of PS.miniRoomList) {
 				const miniNotifications = PS.rooms[roomid]?.notifications;
 				if (miniNotifications?.length) notifications = [...notifications, ...miniNotifications];
@@ -151,6 +153,9 @@ export class PSHeader extends preact.Component {
 			</a>
 			{closeButton}
 		</li>;
+	}
+	static notifyingMiniRoomTabs() {
+		return PS.miniRoomList.filter(roomid => PS.rooms[roomid]?.notifications.length);
 	}
 	handleResize = () => {
 		if (!this.base) return;
@@ -217,6 +222,7 @@ export class PSHeader extends preact.Component {
 		</span>;
 	}
 	renderVertical() {
+		const miniRoomTabs = PSHeader.notifyingMiniRoomTabs();
 		return <div
 			id="header" class="header-vertical" role="navigation"
 			style={`width:${PSView.verticalHeaderWidth - 7}px`} onClick={PSView.scrollToHeader}
@@ -231,7 +237,8 @@ export class PSHeader extends preact.Component {
 				/>
 				<div class="tablist" role="tablist">
 					<ul>
-						{PSHeader.renderRoomTab(PS.leftRoomList[0])}
+						{PSHeader.renderRoomTab(PS.leftRoomList[0], false, false)}
+						{miniRoomTabs.map(roomid => PSHeader.renderRoomTab(roomid))}
 					</ul>
 					<ul>
 						{PS.leftRoomList.slice(1).map(roomid => PSHeader.renderRoomTab(roomid))}
@@ -297,6 +304,7 @@ export class PSHeader extends preact.Component {
 }
 
 export class PSMiniHeader extends preact.Component {
+	menuOpen?: boolean;
 	override componentDidMount() {
 		window.addEventListener('scroll', this.handleScroll);
 	}
@@ -304,9 +312,11 @@ export class PSMiniHeader extends preact.Component {
 		window.removeEventListener('scroll', this.handleScroll);
 	}
 	handleScroll = () => {
-		this.forceUpdate();
+		if (this.menuOpen !== !window.scrollX) this.forceUpdate();
 	};
 	override render() {
+		this.menuOpen = !window.scrollX;
+
 		if (PS.leftPanelWidth !== null) return null;
 
 		let notificationsCount = 0;
@@ -319,11 +329,11 @@ export class PSMiniHeader extends preact.Component {
 		const userColor = window.BattleLog && `color:${PS.user.away ? '#888' : BattleLog.usernameColor(PS.user.userid)}`;
 		const showMenuButton = PSView.narrowMode;
 		const notifying = (
-			!showMenuButton && !window.scrollX && Object.values(PS.rooms).some(room => room!.notifications.length)
+			!showMenuButton && this.menuOpen && Object.values(PS.rooms).some(room => room!.notifications.length)
 		) ? ' notifying' : '';
 		const menuButton = !showMenuButton ? (
 			null
-		) : window.scrollX ? (
+		) : !this.menuOpen ? (
 			<button onClick={PSView.scrollToHeader} class={`mini-header-left ${notifying}`} aria-label="Menu">
 				{!!notificationsCount && <div class="notification-badge">{notificationsCount}</div>}
 				<i class="fa fa-bars" aria-hidden></i>
