@@ -18,14 +18,16 @@ export type SearchType = (
 	'pokemon' | 'type' | 'tier' | 'move' | 'item' | 'ability' | 'egggroup' | 'category' | 'article'
 	);
 
+export type Entry2 = (number | string);
+
 export type SearchRow = (
-	[SearchType, ID, number?, number?] | ['sortpokemon' | 'sortmove', ''] | ['header' | 'html', string]
+	[SearchType, ID, Entry2?, number?, string?] | ['sortpokemon' | 'sortmove', ''] | ['header' | 'html', string]
 	);
 
 type SearchFilter = [string, string];
 
 /** ID, SearchType, index (if alias), offset (if offset alias) */
-declare const BattleSearchIndex: [ID, SearchType, number?, number?][];
+declare const BattleSearchIndex: [ID, SearchType, Entry2?, number?, string?][];
 declare const BattleSearchIndexOffset: any;
 declare const BattleTeambuilderTable: any;
 
@@ -351,14 +353,16 @@ export class DexSearch {
 		// Notes:
 		// - if we have a searchType, that searchType's buffer will be on top
 		let bufs: SearchRow[][] = [[], [], [], [], [], [], [], [], [], []];
+
 		let seenInBuf: Record<string, boolean>[] = bufs.map(() => Object.create(null));
+
 		let topbufIndex = -1;
 
 		let count = 0;
 		let nearMatch = false;
 
 		/** [type, id, typeIndex] */
-		let instafilter: [SearchType, ID, number] | null = null;
+		let instafilter: [SearchType, ID, number, string] | null = null;
 		let instafilterSort = [0, 1, 2, 5, 4, 3, 6, 7, 8];
 		let illegal = this.typedSearch?.illegalReasons;
 
@@ -375,6 +379,17 @@ export class DexSearch {
 			let entry = BattleSearchIndex[i];
 			let id = entry[0];
 			let type = entry[1];
+			let mod = '';
+			if (typeof entry[2] === 'string') {
+				mod = entry[2];
+			} else if (typeof entry[4] === 'string') {
+				mod = entry[4]
+			}
+
+			// don't add non-mod results
+			if (mod && !['gen9', this.dex.modid].includes(mod)) {
+				continue;
+			}
 
 			if (!id) break;
 
@@ -397,7 +412,7 @@ export class DexSearch {
 				continue;
 			}
 
-			if (entry.length > 2) {
+			if (entry.length > 3) {
 				// alias entry
 				if (passType !== 'alias') continue;
 			} else {
@@ -429,16 +444,16 @@ export class DexSearch {
 				// alias entry
 				// [aliasid, type, originalid, matchStart, originalindex]
 				matchStart = entry[3]!;
-				let originalIndex = entry[2]!;
+				let originalIndex = entry[2]! as number;
 				if (matchStart) {
 					matchEnd = matchStart + query.length;
 					matchStart += (BattleSearchIndexOffset[originalIndex][matchStart] || '0').charCodeAt(0) - 48;
-					matchEnd += (BattleSearchIndexOffset[originalIndex][matchEnd - 1] || '0').charCodeAt(0) - 48;
+					matchEnd += (BattleSearchIndexOffset[originalIndex][matchEnd - 2] || '0').charCodeAt(0) - 48;
 				}
 				id = BattleSearchIndex[originalIndex][0];
 			} else {
 				matchEnd = query.length;
-				if (matchEnd) matchEnd += (BattleSearchIndexOffset[i][matchEnd - 1] || '0').charCodeAt(0) - 48;
+				if (matchEnd) matchEnd += (BattleSearchIndexOffset[i][matchEnd - 2] || '0').charCodeAt(0) - 48;
 			}
 
 			// some aliases are substrings
@@ -447,7 +462,7 @@ export class DexSearch {
 			if (searchType && searchTypeIndex !== typeIndex) {
 				// This is a filter, set it as an instafilter candidate
 				if (!instafilter || instafilterSort[typeIndex] < instafilterSort[instafilter[2]]) {
-					instafilter = [type, id, typeIndex];
+					instafilter = [type, id, typeIndex, ''];
 				}
 			}
 
@@ -480,12 +495,15 @@ export class DexSearch {
 			}
 
 			// don't add duplicate results
+
 			if (id in seenInBuf[typeIndex]) continue;
+
 			seenInBuf[typeIndex][id] = true;
 
 			bufs[typeIndex].push([type, id, matchStart, matchEnd]);
 
 			count++;
+
 		}
 
 		let topbuf: SearchRow[] = [];
@@ -502,7 +520,6 @@ export class DexSearch {
 			bufs[searchTypeIndex] = [];
 			bufs[0] = [];
 		}
-
 		if (instafilter && count < 20) {
 			// Result count is less than 20, so we can instafilter
 			bufs.push(this.instafilter(searchType, instafilter[0], instafilter[1]));
@@ -818,7 +835,9 @@ abstract class BattleTypedSearch<T extends SearchType> {
 	}
 	protected canLearn(speciesid: ID, moveid: ID) {
 		const move = this.dex.moves.get(moveid);
-		if (this.formatType === 'natdex' && move.isNonstandard && move.isNonstandard !== 'Past') {
+		const isNatdex = window.BattleTeambuilderTable[window.BattleTeambuilderTable.formats[this.formatType]?.builder]?.isNatDex ||
+		this.formatType === 'natdex';
+		if (isNatdex && move.isNonstandard && move.isNonstandard !== 'Past') {
 			return false;
 		}
 		const gen = this.dex.gen;
@@ -829,7 +848,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 			this.format.startsWith('battlespot') ||
 			this.format.startsWith('battlestadium') ||
 			this.format.startsWith('battlefestival') ||
-			(this.dex.gen === 9 && this.formatType !== 'natdex')
+			(this.dex.gen === 9 && !isNatdex)
 		) {
 			if (gen === 9) {
 				genChar = 'a';
@@ -885,7 +904,6 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		if (id in table.overrideTier) {
 			return table.overrideTier[id];
 		}
-
 		return pokemon.tier;
 	}
 	eggMovesOnly(child: ID, father: ID) {
@@ -1003,7 +1021,16 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 	filter(row: SearchRow, filters: string[][]) {
 		if (!filters) return true;
 		if (row[0] !== 'pokemon') return true;
+		let mod;
+		if (typeof row[2] === 'string') {
+			mod = row[2];
+		} else {
+			mod = row[4];
+		}
 		const species = this.dex.species.get(row[1]);
+		if (!species.exists) {
+			return false;
+		}
 		for (const [filterType, value] of filters) {
 			switch (filterType) {
 				case 'type':
@@ -1013,7 +1040,7 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 					if (species.eggGroups[0] !== value && species.eggGroups[1] !== value) return false;
 					break;
 				case 'tier':
-					if (this.getTier(species) !== value) return false;
+					if (this.getTier(species).toLowerCase().replace(' ', '') !== value.toLowerCase()) return false;
 					break;
 				case 'ability':
 					if (!Dex.hasAbility(species, value)) return false;

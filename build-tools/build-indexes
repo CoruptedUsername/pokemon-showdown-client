@@ -46,8 +46,6 @@ const BattleTeambuilderTable = {};
 BattleTeambuilderTable.formats = {};
 BattleTeambuilderTable.sprites = {};
 
-let modsWithSprites = []
-
 let oldSpritesFolderDeleted = false;
 
 for (const modDex in Dex.dexes) {
@@ -180,25 +178,66 @@ for (const modDex in Dex.dexes) {
 		}
 	}
 
-	index = index.concat(Object.keys(Dex.data.Pokedex).map(x => x + ' pokemon'));
+	index = index.concat(Object.keys(Dex.data.Pokedex).map(x => x + ' pokemon gen9'));
 	for (const mod of BuilderMods) {
-		for (const mon in Dex.mod(mod).data.Pokedex) {
-			if (!index.includes(mon + ' pokemon')) {
-				index.concat(mon + ' pokemon');
+		for (const mon of Object.keys(Dex.mod(mod).data.Pokedex)) {
+			if (!index.includes(mon + ' pokemon gen9')) {
+				index.push(mon + ` pokemon ${mod}`);
 			}
 		}
 	}
-	index = index.concat(Object.keys(Dex.data.Moves).map(x => x + ' move'));
-	index = index.concat(Object.keys(Dex.data.Items).map(x => x + ' item'));
-	index = index.concat(Object.keys(Dex.data.Abilities).map(x => x + ' ability'));
-	index = index.concat(Object.keys(Dex.data.TypeChart).map(x => toID(x) + ' type'));
-	index = index.concat(['physical', 'special', 'status'].map(x => toID(x) + ' category'));
+	index = index.concat(Object.keys(Dex.data.Moves).map(x => x + ' move gen9'));
+	for (const mod of BuilderMods) {
+		for (const move of Object.keys(Dex.mod(mod).data.Moves)) {
+			if (!index.includes(move + ' move gen9')) {
+				index.push(move + ` move ${mod}`);
+			}
+		}
+	}
+	index = index.concat(Object.keys(Dex.data.Items).map(x => x + ' item gen9'));
+	for (const mod of BuilderMods) {
+		for (const item of Object.keys(Dex.mod(mod).data.Items)) {
+			if (!index.includes(item + ' item gen9')) {
+				index.push(item + ` item ${mod}`);
+			}
+		}
+	}
+	index = index.concat(Object.keys(Dex.data.Abilities).map(x => x + ' ability gen9'));
+	for (const mod of BuilderMods) {
+		for (const ability of Object.keys(Dex.mod(mod).data.Abilities)) {
+			if (!index.includes(ability + ' ability gen9')) {
+				index.push(ability + ` ability ${mod}`);
+			}
+		}
+	}
+	index = index.concat(Object.keys(Dex.data.TypeChart).map(x => toID(x) + ' type gen9'));
+	for (const mod of BuilderMods) {
+		for (const type of Object.keys(Dex.mod(mod).data.TypeChart)) {
+			if (!index.includes(type + ' type gen9')) {
+				index.push(type + ` type ${mod}`);
+			}
+		}
+	}
+	index = index.concat(['physical', 'special', 'status'].map(x => toID(x) + ' category gen9'));
 	index = index.concat([
 		'monster', 'water1', 'bug', 'flying', 'field', 'fairy', 'grass', 'humanlike', 'water3', 'mineral', 'amorphous', 'water2', 'ditto', 'dragon', 'undiscovered',
-	].map(x => toID(x) + ' egggroup'));
+	].map(x => toID(x) + ' egggroup gen9'));
 	index = index.concat([
 		'ou', 'uu', 'ru', 'nu', 'pu', 'zu', 'lc', 'nfe', 'uber', 'uubl', 'rubl', 'nubl', 'publ', 'zubl', 'cap', 'caplc', 'capnfe',
-	].map(x => toID(x) + ' tier'));
+	].map(x => toID(x) + ' tier gen9'));
+	for (const mod of BuilderMods) {
+		for (const builderIndex of Object.keys(Dex.mod(mod).data.Teambuilders)) {
+			let builder = Dex.mod(mod).data.Teambuilders[builderIndex];
+			if (builder.validTiers) {
+				for (const tier of builder.validTiers) {
+					let editedTier = toID(tier.replace(' ', '~'));
+					if (!index.includes(editedTier + ' tier gen9') || !index.includes(editedTier + ` tier ${mod}`)) {
+						index.push(editedTier + ` tier ${mod}`);
+					}
+				}
+			}
+		}
+	}
 
 	const BattleArticleTitles = {};
 
@@ -219,66 +258,78 @@ for (const modDex in Dex.dexes) {
 	} catch {
 		console.log('\n(WARNING: NO ARTICLES)');
 	}
-	index.push('pokemon article');
-	index.push('moves article');
+	index.push('pokemon article gen9');
+	index.push('moves article gen9');
 
 	const compoundTable = new Map(CompoundWordNames.map(word => [toID(word), word]));
 	// generate aliases
-	function generateAlias(id, name, type) {
+	function generateAlias(id, name, type, mod) {
 		name = compoundTable.get(id) || name;
 		if (type === 'pokemon' && !compoundTable.has(id)) {
-			const species = Dex.species.get(id);
+			const species = Dex.mod(mod).species.get(id);
 			const baseid = toID(species.baseSpecies);
 			if (baseid !== id) {
 				name = (compoundTable.get(baseid) || species.baseSpecies) + ' ' + species.forme;
 			}
 		}
 		if (name.endsWith(' Mega-X') || name.endsWith(' Mega-Y')) {
-			index.push('mega' + toID(name.slice(0, -7) + name.slice(-1)) + ' ' + type + ' ' + id + ' 0');
-			index.push('m' + toID(name.slice(0, -7) + name.slice(-1)) + ' ' + type + ' ' + id + ' 0');
-			index.push('mega' + toID(name.slice(-1)) + ' ' + type + ' ' + id + ' ' + toID(name.slice(0, -7)).length);
+			index.push('mega' + toID(name.slice(0, -7) + name.slice(-1)) + ' ' + type + ' ' + id + ` 0 ${mod}`);
+			index.push('m' + toID(name.slice(0, -7) + name.slice(-1)) + ' ' + type + ' ' + id + ` 0 ${mod}`);
+			index.push('mega' + toID(name.slice(-1)) + ' ' + type + ' ' + id + ' ' + toID(name.slice(0, -7)).length + ` ${mod}`);
 		} else if (name.endsWith(' Mega')) {
-			index.push('mega' + toID(name.slice(0, -5)) + ' ' + type + ' ' + id + ' 0');
-			index.push('m' + toID(name.slice(0, -5)) + ' ' + type + ' ' + id + ' 0');
+			index.push('mega' + toID(name.slice(0, -5)) + ' ' + type + ' ' + id + ` 0 ${mod}`);
+			index.push('m' + toID(name.slice(0, -5)) + ' ' + type + ' ' + id + ` 0 ${mod}`);
 		} else if (name.endsWith(' Alola')) {
-			index.push('alolan' + toID(name.slice(0, -6)) + ' ' + type + ' ' + id + ' 0');
+			index.push('alolan' + toID(name.slice(0, -6)) + ' ' + type + ' ' + id + ` 0 ${mod}`);
 		} else if (name.endsWith(' Galar')) {
-			index.push('galarian' + toID(name.slice(0, -6)) + ' ' + type + ' ' + id + ' 0');
+			index.push('galarian' + toID(name.slice(0, -6)) + ' ' + type + ' ' + id + ` 0 ${mod}`);
 		} else if (name.endsWith(' Hisui')) {
-			index.push('hisuian' + toID(name.slice(0, -6)) + ' ' + type + ' ' + id + ' 0');
+			index.push('hisuian' + toID(name.slice(0, -6)) + ' ' + type + ' ' + id + ` 0 ${mod}`);
 		}
 		const fullSplit = name.split(/ |-/).map(toID);
 		if (fullSplit.length < 2) return;
 		const fullAcronym = fullSplit.map(x => x.charAt(0)).join('') + fullSplit.at(-1).slice(1);
-		index.push('' + fullAcronym + ' ' + type + ' ' + id + ' 0');
+		index.push('' + fullAcronym + ' ' + type + ' ' + id + ` 0 ${mod}`);
 		for (let i = 1; i < fullSplit.length; i++) {
-			index.push('' + fullSplit.slice(i).join('') + ' ' + type + ' ' + id + ' ' + fullSplit.slice(0, i).join('').length);
+			index.push('' + fullSplit.slice(i).join('') + ' ' + type + ' ' + id + ' ' + fullSplit.slice(0, i).join('').length + ` ${mod}`);
 		}
 
 		const spaceSplit = name.split(' ').map(toID);
 		if (spaceSplit.length !== fullSplit.length) {
 			const spaceAcronym = spaceSplit.map(x => x.charAt(0)).join('') + spaceSplit.at(-1).slice(1);
 			if (spaceAcronym !== fullAcronym) {
-				index.push('' + spaceAcronym + ' ' + type + ' ' + id + ' 0');
+				index.push('' + spaceAcronym + ' ' + type + ' ' + id + ` 0 ${mod}`);
 			}
 		}
 	}
-	for (const id in Dex.data.Pokedex) {
-		const name = Dex.data.Pokedex[id].name;
-		if (Dex.data.Pokedex[id].isCosmeticForme) continue;
-		generateAlias(id, name, 'pokemon');
-	}
-	for (const id in Dex.data.Moves) {
-		const name = Dex.data.Moves[id].name;
-		generateAlias(id, name, 'move');
-	}
-	for (const id in Dex.data.Items) {
-		const name = Dex.data.Items[id].name;
-		generateAlias(id, name, 'item');
-	}
-	for (const id in Dex.data.Abilities) {
-		const name = Dex.data.Abilities[id].name;
-		generateAlias(id, name, 'ability');
+	const numIndeces = index.length;
+	for (let indexNum = 0; indexNum < numIndeces; indexNum++) {
+		const indexItem = index[indexNum];
+		const id = indexItem.split(' ')[0];
+		const type = indexItem.split(' ')[1];
+		const mod = indexItem.split(' ')[2];
+		let name;
+		if (id === "venusaurmega") {
+		}
+		switch (type) {
+			case 'pokemon':
+				name = Dex.mod(mod).data.Pokedex[id].name;
+				if (Dex.mod(mod).data.Pokedex[id].isCosmeticForme) continue;
+				generateAlias(id, name, type, mod)
+				break;
+			case 'move':
+				name = Dex.mod(mod).data.Moves[id].name;
+				generateAlias(id, name, type, mod)
+				break;
+			case 'item':
+				name = Dex.mod(mod).data.Items[id].name;
+				generateAlias(id, name, type, mod)
+				break;
+			case 'ability':
+				name = Dex.mod(mod).data.Abilities[id].name;
+				generateAlias(id, name, type, mod)
+				break;
+		}
 	}
 
 	// hardcode ultra beasts
@@ -296,50 +347,54 @@ for (const modDex in Dex.dexes) {
 		ubstinger: "naganadel",
 	};
 	for (const [ubCode, id] of Object.entries(ultraBeasts)) {
-		index.push(`${ubCode} pokemon ${id} 0`);
+		index.push(`${ubCode} pokemon ${id} 0 gen9`);
 	}
 
 	index.sort();
 
 	// manually rearrange
-	index[index.indexOf('grass type')] = 'grass egggroup';
-	index[index.indexOf('grass egggroup')] = 'grass type';
+	index[index.indexOf('grass type gen9')] = 'grass egggroup gen9';
+	index[index.indexOf('grass egggroup gen9')] = 'grass type gen9';
 
-	index[index.indexOf('fairy type')] = 'fairy egggroup';
-	index[index.indexOf('fairy egggroup')] = 'fairy type';
+	index[index.indexOf('fairy type gen9')] = 'fairy egggroup gen9';
+	index[index.indexOf('fairy egggroup gen9')] = 'fairy type gen9';
 
-	index[index.indexOf('flying type')] = 'flying egggroup';
-	index[index.indexOf('flying egggroup')] = 'flying type';
+	index[index.indexOf('flying type gen9')] = 'flying egggroup gen9';
+	index[index.indexOf('flying egggroup gen9')] = 'flying type gen9';
 
-	index[index.indexOf('dragon type')] = 'dragon egggroup';
-	index[index.indexOf('dragon egggroup')] = 'dragon type';
+	index[index.indexOf('dragon type gen9')] = 'dragon egggroup gen9';
+	index[index.indexOf('dragon egggroup gen9')] = 'dragon type gen9';
 
-	index[index.indexOf('bug type')] = 'bug egggroup';
-	index[index.indexOf('bug egggroup')] = 'bug type';
+	index[index.indexOf('bug type gen9')] = 'bug egggroup gen9';
+	index[index.indexOf('bug egggroup gen9')] = 'bug type gen9';
 
-	index[index.indexOf('psychic type')] = 'psychic move';
-	index[index.indexOf('psychic move')] = 'psychic type';
+	index[index.indexOf('psychic type gen9')] = 'psychic move gen9';
+	index[index.indexOf('psychic move gen9')] = 'psychic type gen9';
 
-	index[index.indexOf('ditto pokemon')] = 'ditto egggroup';
-	index[index.indexOf('ditto egggroup')] = 'ditto pokemon';
+	index[index.indexOf('ditto pokemon gen9')] = 'ditto egggroup gen9';
+	index[index.indexOf('ditto egggroup gen9')] = 'ditto pokemon gen9';
 
 	const BattleSearchIndex = index.map(x => {
 		x = x.split(' ');
-		if (x.length > 3) {
+		if (x.length > 4) {
 			x[3] = Number(x[3]);
-			x[2] = index.indexOf(x[2] + ' ' + x[1]);
+			x[2] = index.indexOf(x[2] + ' ' + x[1] + ' ' + x.at(-1));
+		}
+		if (x[1] === 'tier') {
+			x[0] = x[0].replace('~', ' ');
 		}
 		return x;
 	});
 
 	const BattleSearchIndexOffset = BattleSearchIndex.map(entry => {
+		const mod = entry.at(-1)
 		const id = entry[0];
 		let name = '';
 		switch (entry[1]) {
-		case 'pokemon': name = Dex.species.get(id).name; break;
-		case 'move': name = Dex.moves.get(id).name; break;
-		case 'item': name = Dex.items.get(id).name; break;
-		case 'ability': name = Dex.abilities.get(id).name; break;
+		case 'pokemon': name = Dex.mod(mod).species.get(id).name; break;
+		case 'move': name = Dex.mod(mod).moves.get(id).name; break;
+		case 'item': name = Dex.mod(mod).items.get(id).name; break;
+		case 'ability': name = Dex.mod(mod).abilities.get(id).name; break;
 		case 'article': name = BattleArticleTitles[id] || ''; break;
 		}
 		let res = '';

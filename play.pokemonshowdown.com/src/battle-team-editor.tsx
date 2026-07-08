@@ -102,8 +102,10 @@ export class TeamEditorState extends PSModel {
 		this.defaultLevel = 100;
 
 		if (formatid in window.BattleTeambuilderTable.formats) {
-			currentBuilder = window.BattleTeambuilderTable.formats[formatid].mod;
+			currentBuilder = window.BattleTeambuilderTable.formats[formatid].builder;
 		}
+
+		console.log(formatid);
 
 		if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid]) {
 			if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid].hasOwnProperty("bonusRules")) {
@@ -125,6 +127,7 @@ export class TeamEditorState extends PSModel {
 				}
 			}
 			this.defaultLevel = window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].defaultLevel;
+			console.log(this.defaultLevel);
 		}
 	}
 	stringifyFocus(focus: FocusState | null): string {

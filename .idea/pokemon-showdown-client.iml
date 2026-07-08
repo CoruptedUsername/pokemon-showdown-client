@@ -5,6 +5,12 @@
       <excludeFolder url="file://$MODULE_DIR$/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/caches" />
+      <excludeFolder url="file://$MODULE_DIR$/play.pokemonshowdown.com/data" />
+      <excludeFolder url="file://$MODULE_DIR$/play.pokemonshowdown.com/js" />
+      <excludeFolder url="file://$MODULE_DIR$/pokemonshowdown.com" />
+      <excludeFolder url="file://$MODULE_DIR$/replay.pokemonshowdown.com" />
+      <excludeFolder url="file://$MODULE_DIR$/teams.pokemonshowdown.com" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

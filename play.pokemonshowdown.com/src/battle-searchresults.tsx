@@ -31,7 +31,6 @@ export class PSSearchResults extends preact.Component<{
 	  * null means a sort was selected (clear not needed) */
 	onSelect?: (type: SearchType | '' | null, name: string, moveSlot?: string) => void,
 }> {
-	readonly URL_ROOT = `//${Config.routes.dex}/`;
 	speciesId: ID = '' as ID;
 	itemId: ID = '' as ID;
 	abilityId: ID = '' as ID;
@@ -86,7 +85,7 @@ export class PSSearchResults extends preact.Component<{
 		for (const stat of Object.values(stats)) bst += stat;
 		if (search.dex.gen < 2) bst -= stats['spd'];
 
-		let buf = `<li class="result" value="${index}"><a href="${this.URL_ROOT}pokemon/${id}" ` +
+		let buf = `<li class="result" value="${index}"><a ` +
 			`class="${id === this.speciesId ? 'cur' : ''}" data-target="push" ` +
 			`data-entry="pokemon|${escapeHTML(pokemon.name)}">` +
 			`<span class="col numcol">${escapeHTML(search.getTier(pokemon))}</span>` +
@@ -154,7 +153,7 @@ export class PSSearchResults extends preact.Component<{
 		const item = search.dex.items.get(id);
 		if (!item) return `<li class="result" value="${index}">Unrecognized item</li>`;
 
-		return `<li class="result" value="${index}"><a href="${this.URL_ROOT}items/${id}" ` +
+		return `<li class="result" value="${index}"><a ` +
 			`class="${id === this.itemId ? 'cur' : ''}" data-target="push" data-entry="item|${escapeHTML(item.name)}">` +
 			`<span class="col itemiconcol"><span class="pixelated" style="${escapeHTML(Dex.getItemIcon(item, search.dex.modid))}"></span></span>` +
 			`<span class="col namecol">${id ? this.renderNameHTML(item.name, matchStart, matchEnd) : '<i>(no item)</i>'}</span>` +
@@ -168,7 +167,8 @@ export class PSSearchResults extends preact.Component<{
 		const ability = search.dex.abilities.get(id);
 		if (!ability) return `<li class="result" value="${index}">Unrecognized ability</li>`;
 
-		return `<li class="result" value="${index}"><a href="${this.URL_ROOT}abilities/${id}" ` +
+
+		return `<li class="result" value="${index}"><a ` +
 			`class="${id === this.abilityId ? 'cur' : ''}" data-target="push" data-entry="ability|${escapeHTML(ability.name)}">` +
 			`<span class="col namecol">${id ? this.renderNameHTML(ability.name, matchStart, matchEnd) : '<i>(no ability)</i>'}</span>` +
 			(errorMessage || '') +
@@ -181,7 +181,7 @@ export class PSSearchResults extends preact.Component<{
 		if (id.startsWith('_')) {
 			[slot, id] = id.slice(1).split('_') as [string, ID];
 			if (!id) {
-				return `<li class="result" value="${index}"><a href="${this.URL_ROOT}moves/" class="cur" ` +
+				return `<li class="result" value="${index}"><a class="cur" ` +
 					`data-target="push" data-entry="move||${escapeHTML(slot)}">` +
 					`<span class="col movenamecol"><i>(slot ${escapeHTML(slot)} empty)</i></span></a></li>`;
 			}
@@ -193,7 +193,7 @@ export class PSSearchResults extends preact.Component<{
 		const entry = slot ? `move|${move.name}|${slot}` : `move|${move.name}`;
 		const tagStart = (move.name.startsWith('Hidden Power') ? 12 : 0);
 
-		let buf = `<li class="result" value="${index}"><a href="${this.URL_ROOT}moves/${id}" ` +
+		let buf = `<li class="result" value="${index}"><a ` +
 			`class="${this.moveIds.includes(id) ? 'cur' : ''}" data-target="push" data-entry="${escapeHTML(entry)}">` +
 			`<span class="col movenamecol">${this.renderNameHTML(move.name, matchStart, matchEnd, tagStart)}</span>`;
 		if (errorMessage) return `${buf}${errorMessage}</a></li>`;
@@ -221,7 +221,7 @@ export class PSSearchResults extends preact.Component<{
 	renderTypeRowHTML(index: number, id: ID, matchStart: number, matchEnd: number, errorMessage?: string) {
 		const name = id.charAt(0).toUpperCase() + id.slice(1);
 
-		return `<li class="result" value="${index}"><a href="${this.URL_ROOT}types/${id}" ` +
+		return `<li class="result" value="${index}"><a ` +
 			`data-target="push" data-entry="type|${escapeHTML(name)}">` +
 			`<span class="col namecol">${this.renderNameHTML(name, matchStart, matchEnd)}</span>` +
 			`<span class="col typecol"><img src="${Dex.resourcePrefix}sprites/types/${encodeURIComponent(name)}.png" ` +
@@ -233,7 +233,7 @@ export class PSSearchResults extends preact.Component<{
 	renderCategoryRowHTML(index: number, id: ID, matchStart: number, matchEnd: number, errorMessage?: string) {
 		const name = id.charAt(0).toUpperCase() + id.slice(1);
 
-		return `<li class="result" value="${index}"><a href="${this.URL_ROOT}categories/${id}" ` +
+		return `<li class="result" value="${index}"><a ` +
 			`data-target="push" data-entry="category|${escapeHTML(name)}">` +
 			`<span class="col namecol">${this.renderNameHTML(name, matchStart, matchEnd)}</span>` +
 			`<span class="col typecol"><img src="${Dex.resourcePrefix}sprites/categories/${escapeHTML(name)}.png" ` +
@@ -246,7 +246,7 @@ export class PSSearchResults extends preact.Component<{
 		const isSearchType = (id === 'pokemon' || id === 'moves');
 		const name = window.BattleArticleTitles?.[id] || (id.charAt(0).toUpperCase() + id.substr(1));
 
-		return `<li class="result" value="${index}"><a href="${this.URL_ROOT}articles/${id}" ` +
+		return `<li class="result" value="${index}"><a ` +
 			`data-target="push" data-entry="article|${escapeHTML(name)}">` +
 			`<span class="col namecol">${this.renderNameHTML(name, matchStart, matchEnd)}</span>` +
 			`<span class="col movedesccol">${isSearchType ? "(search type)" : "(article)"}</span>` +
@@ -267,7 +267,7 @@ export class PSSearchResults extends preact.Component<{
 			name = id.charAt(0).toUpperCase() + id.slice(1);
 		}
 
-		return `<li class="result" value="${index}"><a href="${this.URL_ROOT}egggroups/${id}" ` +
+		return `<li class="result" value="${index}"><a ` +
 			`data-target="push" data-entry="egggroup|${escapeHTML(name)}">` +
 			`<span class="col namecol">${this.renderNameHTML(name, matchStart, matchEnd)}</span>` +
 			`<span class="col movedesccol">(egg group)</span>` +
@@ -284,7 +284,7 @@ export class PSSearchResults extends preact.Component<{
 		};
 		const name = tierTable[id] || id.toUpperCase();
 
-		return `<li class="result" value="${index}"><a href="${this.URL_ROOT}tiers/${id}" ` +
+		return `<li class="result" value="${index}"><a ` +
 			`data-target="push" data-entry="tier|${escapeHTML(name)}">` +
 			`<span class="col namecol">${this.renderNameHTML(name, matchStart, matchEnd)}</span>` +
 			`<span class="col movedesccol">(tier)</span>` +
