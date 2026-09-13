@@ -76,7 +76,9 @@ export class PSSearchResults extends preact.Component<{
 	renderPokemonRowHTML(index: number, id: ID, matchStart: number, matchEnd: number, errorMessage?: string) {
 		const search = this.props.search;
 		const mod = this.props.search.dex.modid;
-		const pokemon = search.dex.species.get(id);
+		console.log(this.props.search.format);
+		console.log(this.format);
+		const pokemon = search.dex.species.get(id, this.props.search.format);
 		if (!pokemon) return `<li class="result" value="${index}">Unrecognized pokemon</li>`;
 
 		const tagStart = (pokemon.forme ? pokemon.name.length - pokemon.forme.length - 1 : 0);

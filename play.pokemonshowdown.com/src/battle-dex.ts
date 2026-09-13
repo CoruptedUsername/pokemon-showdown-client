@@ -1091,8 +1091,9 @@ export class ModdedDex {
 				}
 			}
 			if (this.modid !== `gen${this.gen}`) {
-				const table = window.BattleTeambuilderTable[this.modid];
-				if (id in table.overrideMoveData) {
+				const builderName = window.BattleTeambuilderTable.formats?.[this.modid]?.builder;
+				const table = window.BattleTeambuilderTable?.[builderName];
+				if (table && id in table.overrideMoveData) {
 					Object.assign(data, table.overrideMoveData[id]);
 				}
 			}
@@ -1126,8 +1127,9 @@ export class ModdedDex {
 				}
 			}
 			if (this.modid !== `gen${this.gen}`) {
-				const table = window.BattleTeambuilderTable[this.modid];
-				if (id in table.overrideItemData) {
+				const builderName = window.BattleTeambuilderTable.formats?.[this.modid]?.builder;
+				const table = window.BattleTeambuilderTable?.[builderName];
+				if (table && id in table.overrideItemData) {
 					Object.assign(data, table.overrideItemData[id]);
 				}
 			}
@@ -1156,8 +1158,9 @@ export class ModdedDex {
 				}
 			}
 			if (this.modid !== `gen${this.gen}`) {
-				const table = window.BattleTeambuilderTable[this.modid];
-				if (id in table.overrideAbilityData) {
+				const builderName = window.BattleTeambuilderTable.formats?.[this.modid]?.builder;
+				const table = window.BattleTeambuilderTable?.[builderName];
+				if (table && id in table.overrideAbilityData) {
 					Object.assign(data, table.overrideAbilityData[id]);
 				}
 			}
@@ -1169,7 +1172,7 @@ export class ModdedDex {
 	};
 
 	species = {
-		get: (name: string): Species => {
+		get: (name: string, format?: string): Species => {
 			let id = toID(name);
 			const originalId = id;
 			if (window.BattleAliases && id in BattleAliases) {
@@ -1188,12 +1191,13 @@ export class ModdedDex {
 					Object.assign(data, table.overrideSpeciesData[id]);
 				}
 			}
-			if (this.modid !== `gen${this.gen}`) {
-				let table = window.BattleTeambuilderTable[this.modid];
+			if (this.modid !== `gen${this.gen}` || format) {
+				const builderName = window.BattleTeambuilderTable.formats?.[format]?.builder;
+				let table = window.BattleTeambuilderTable?.[builderName];
 				if (table === undefined) {
 					table = window.BattleTeambuilderTable["gen9"];
 				}
-				if (id in table?.overrideSpeciesData) {
+				if (id in table.overrideSpeciesData) {
 					Object.assign(data, table.overrideSpeciesData[id]);
 				}
 			}
@@ -1201,7 +1205,8 @@ export class ModdedDex {
 				data.abilities = { 0: "No Ability" };
 			}
 
-			let table = window.BattleTeambuilderTable[this.modid];
+			const builderName = window.BattleTeambuilderTable.formats?.[this.modid]?.builder;
+			let table = window.BattleTeambuilderTable?.[builderName];
 			if (table === undefined) {
 				table = window.BattleTeambuilderTable["gen9"];
 			}

@@ -42,11 +42,15 @@ function requireNoCache(pathSpec) {
  *********************************************************/
 
 const BattleTeambuilderTable = {};
-
-BattleTeambuilderTable.formats = {};
-BattleTeambuilderTable.sprites = {};
-
 let oldSpritesFolderDeleted = false;
+
+for (const modDex in Dex.dexes) {
+	if (Dex.mod(modDex).data.Sprites?.monSprites !== undefined ||
+		Dex.mod(modDex).data.Sprites?.itemSprites !== undefined ||
+		Dex.mod(modDex).data.Sprites?.typeSprites !== undefined) {
+		BattleTeambuilderTable.sprites = {};
+	}
+}
 
 for (const modDex in Dex.dexes) {
 	let hasSprites = Dex.mod(modDex).data.Sprites?.monSprites !== undefined ||
@@ -138,26 +142,43 @@ for (const modDex in Dex.dexes) {
 			}
 		}
 	}
-	if (Dex.mod(modDex).data.Teambuilders) {
-		for (const builder of Object.keys(Dex.mod(modDex).data.Teambuilders)) {
-			const builderData = Dex.mod(modDex).data.Teambuilders[builder];
-			BattleTeambuilderTable[builder] = {};
-			BattleTeambuilderTable[builder].mod = modDex;
-			BattleTeambuilderTable[builder].formatType = builderData.formatType;
-			BattleTeambuilderTable[builder].isNatDex = builderData.isNatDex;
-			BattleTeambuilderTable[builder].bonusRules = builderData?.bonusRules;
-			for (const format of Object.keys(builderData.formats)) {
-				const formatData = builderData.formats[format];
-				BattleTeambuilderTable.formats[format] = {};
-				BattleTeambuilderTable.formats[format].mod = modDex;
-				BattleTeambuilderTable.formats[format].builder = builder;
-				BattleTeambuilderTable.formats[format].topSlice = formatData.topSlice;
-				BattleTeambuilderTable.formats[format].bottomSlice = formatData?.bottomSlice;
-				BattleTeambuilderTable.formats[format].defaultLevel = formatData.defaultLevel;
-				BattleTeambuilderTable.formats[format].bonusRules = formatData?.bonusRules;
+	if (Dex.mod(modDex).data.Scripts.teambuilder) {
+		BattleTeambuilderTable[modDex] = {};
+		if (Dex.mod(modDex).data.Formats) {
+			BattleTeambuilderTable[modDex].formats = {};
+			for (const format of Object.keys(Dex.mod(modDex).data.Formats)) {
+				const formatData = Dex.mod(modDex).data.Formats[format];
+				if (formatData.teambuilder) {
+					BattleTeambuilderTable[modDex].formats[toID(formatData.name)] = {};
+					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].defaultLevel = formatData.teambuilder.defaultLevel;
+					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].tierType = formatData.teambuilder.tierType;
+					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].formatType = formatData.teambuilder.formatType;
+					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].allowedTiers = formatData.teambuilder.allowedTiers;
+					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].isNatDex = formatData.teambuilder.isNatDex;
+				}
 			}
 		}
 	}
+	// if (Dex.mod(modDex).data.Teambuilders) {
+	// 	for (const builder of Object.keys(Dex.mod(modDex).data.Teambuilders)) {
+	// 		const builderData = Dex.mod(modDex).data.Teambuilders[builder];
+	// 		BattleTeambuilderTable[builder] = {};
+	// 		BattleTeambuilderTable[builder].mod = modDex;
+	// 		BattleTeambuilderTable[builder].formatType = builderData.formatType;
+	// 		BattleTeambuilderTable[builder].isNatDex = builderData.isNatDex;
+	// 		BattleTeambuilderTable[builder].bonusRules = builderData?.bonusRules;
+	// 		for (const format of Object.keys(builderData.formats)) {
+	// 			const formatData = builderData.formats[format];
+	// 			BattleTeambuilderTable.formats[format] = {};
+	// 			BattleTeambuilderTable.formats[format].mod = modDex;
+	// 			BattleTeambuilderTable.formats[format].builder = builder;
+	// 			BattleTeambuilderTable.formats[format].topSlice = formatData.topSlice;
+	// 			BattleTeambuilderTable.formats[format].bottomSlice = formatData?.bottomSlice;
+	// 			BattleTeambuilderTable.formats[format].defaultLevel = formatData.defaultLevel;
+	// 			BattleTeambuilderTable.formats[format].bonusRules = formatData?.bonusRules;
+	// 		}
+	// 	}
+	// }
 }
 
 
@@ -173,7 +194,7 @@ for (const modDex in Dex.dexes) {
 
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
-		if (Dex.mod(modDex).data.Teambuilders) {
+		if (Dex.mod(modDex).data.Scripts.teambuilder) {
 			BuilderMods.push(modDex);
 		}
 	}
@@ -225,19 +246,19 @@ for (const modDex in Dex.dexes) {
 	index = index.concat([
 		'ou', 'uu', 'ru', 'nu', 'pu', 'zu', 'lc', 'nfe', 'uber', 'uubl', 'rubl', 'nubl', 'publ', 'zubl', 'cap', 'caplc', 'capnfe',
 	].map(x => toID(x) + ' tier gen9'));
-	for (const mod of BuilderMods) {
-		for (const builderIndex of Object.keys(Dex.mod(mod).data.Teambuilders)) {
-			let builder = Dex.mod(mod).data.Teambuilders[builderIndex];
-			if (builder.validTiers) {
-				for (const tier of builder.validTiers) {
-					let editedTier = toID(tier.replace(' ', '~'));
-					if (!index.includes(editedTier + ' tier gen9') || !index.includes(editedTier + ` tier ${mod}`)) {
-						index.push(editedTier + ` tier ${mod}`);
-					}
-				}
-			}
-		}
-	}
+	// for (const mod of BuilderMods) {
+	// 	for (const builderIndex of Object.keys(Dex.mod(mod).data.Teambuilders)) {
+	// 		let builder = Dex.mod(mod).data.Teambuilders[builderIndex];
+	// 		if (builder.validTiers) {
+	// 			for (const tier of builder.validTiers) {
+	// 				let editedTier = toID(tier.replace(' ', '~'));
+	// 				if (!index.includes(editedTier + ' tier gen9') || !index.includes(editedTier + ` tier ${mod}`)) {
+	// 					index.push(editedTier + ` tier ${mod}`);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// } TODO: Re-add tier-wise search
 
 	const BattleArticleTitles = {};
 
@@ -450,11 +471,12 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	let buf = '// DO NOT EDIT - automatically built with build-tools/build-indexes\n\n';
 	// process.stdout.write("\n  ");
 	for (const tableKey of Object.keys(BattleTeambuilderTable)) {
-		if (tableKey === "formats" || tableKey === "sprites") {
+		if (tableKey === "sprites") {
 			continue;
 		}
-		const gen = BattleTeambuilderTable[tableKey]["mod"];
-		const genTable = Dex.mod(gen).data.Teambuilders[tableKey];
+		const gen = tableKey;
+
+		// const genTable = Dex.mod(gen).data.Teambuilders[tableKey];
 		const pokemon = Object.keys(Dex.mod(gen).data.Pokedex);
 		pokemon.sort();
 		const tierTable = {};
@@ -464,20 +486,24 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		for (const id of pokemon) {
 			const species = Dex.mod(gen).species.get(id);
 			if (species.gen > Dex.mod(gen).data.Scripts.gen) continue;
-			const speciesTier = (() => {
-				const tempTier = genTable.tierType === "tier" ? species.tier: genTable.tierType === "doublesTier" ? species.doublesTier: species.natDexTier;
-				if (genTable.validTiers.includes(tempTier)) {
-					return tempTier;
-				} else {
-					return 'Illegal';
+			const speciesTiers = Dex.mod(gen).data.FormatsData[id];
+			overrideTier[species.id] = speciesTiers;
+			for (const tierType in speciesTiers) {
+				if (["isNonstandard", "gmaxUnreleased"].includes(tierType)) {
+					continue;
 				}
-			})();
-			overrideTier[species.id] = speciesTier;
-			if (!tierTable[speciesTier]) tierTable[speciesTier] = [];
-			tierTable[speciesTier].push(id);
+				if (!(tierType in tierTable)) {
+					tierTable[tierType] = {};
+				}
+				const tier = speciesTiers[tierType];
+				if (!(tier in tierTable[tierType])) {
+					tierTable[tierType][tier] = [];
+				}
+				tierTable[tierType][tier].push(id);
+			}
 		}
 
-		const tiers = [];
+		const tiers = {};
 		const items = [];
 		const formatSlices = {};
 
@@ -487,22 +513,34 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 		BattleTeambuilderTable[tableKey].items = items;
 		BattleTeambuilderTable[tableKey].overrideTier = overrideTier;
 		BattleTeambuilderTable[tableKey].formatSlices = formatSlices;
-		BattleTeambuilderTable[tableKey].formatNames = genTable.formats;
 
-		let tierOrder = [];
 
-		if (genTable.validTiers) {
-			tierOrder = genTable.validTiers;
+		let tierOrder = {};
+
+		if (BattleTeambuilderTable[tableKey].formats) {
+			for (const format in BattleTeambuilderTable[tableKey].formats) {
+				tierOrder[format] = BattleTeambuilderTable[tableKey].formats[format].allowedTiers;
+			}
 		} else {
-			tierOrder = [ "CAP", "CAP NFE", "CAP LC", "AG", "Uber", "(Uber)", "OU", "(OU)", "UUBL", "UU",
-				"RUBL", "RU", "NUBL", "NU", "PUBL", "PU", "ZUBL", "ZU", "New", "NFE", "LC", "Unreleased"];
+			tierOrder = { base: [ "CAP", "CAP NFE", "CAP LC", "AG", "Uber", "(Uber)", "OU", "(OU)", "UUBL", "UU",
+				"RUBL", "RU", "NUBL", "NU", "PUBL", "PU", "ZUBL", "ZU", "New", "NFE", "LC", "Unreleased"]};
 		}
 
-		for (const tier of tierOrder) {
-			formatSlices[tier] = tiers.length;
-			if (!tierTable[tier]) continue;
-			tiers.push(['header', tier]);
-			tiers.push(...tierTable[tier]);
+
+		for (const format in tierOrder) {
+			formatSlices[format] = {};
+			tiers[format] = [];
+			for (const tier of tierOrder[format]) {
+				formatSlices[format][tier] = tiers[format].length;
+				tiers[format].push(['header', tier]);
+				if (!BattleTeambuilderTable[tableKey].formats) {
+					if (tierTable["tier"]?.[tier]) {
+						tiers[format].push(...tierTable["tier"]?.[tier]);
+					}
+				} else if (tierTable[BattleTeambuilderTable[tableKey].formats[format].tierType]?.[tier]) {
+					tiers[format].push(...tierTable[BattleTeambuilderTable[tableKey].formats[format].tierType]?.[tier]);
+				}
+			}
 		}
 
 		const itemList = Object.keys(Dex.mod(gen).data.Items);
@@ -522,19 +560,19 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 				continue;
 			}
 			if (item.isNonstandard) {
-				if (genTable.isNatDex) {
-					let curItem = item;
-					let curGen = Dex.mod(gen).data.Scripts.gen;
-					while (curItem.isNonstandard && curGen >= 7) {
-						curItem = Dex.forGen(curGen).items.get(item.id);
-						curGen--;
-					}
-					if (curItem.isNonstandard) {
-						continue;
-					}
-				} else if (Dex.mod(gen).data.Scripts.gen !== 2) {
-					continue;
-				}
+				// if (genTable.isNatDex) {
+				// 	let curItem = item;
+				// 	let curGen = Dex.mod(gen).data.Scripts.gen;
+				// 	while (curItem.isNonstandard && curGen >= 7) {
+				// 		curItem = Dex.forGen(curGen).items.get(item.id);
+				// 		curGen--;
+				// 	}
+				// 	if (curItem.isNonstandard) {
+				// 		continue;
+				// 	}
+				// } else if (Dex.mod(gen).data.Scripts.gen !== 2) {
+				// 	continue;
+				// }
 			}
 			switch (id) {
 				// mainstays
@@ -559,23 +597,23 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 				case 'heavydutyboots':
 				case 'expertbelt':
 				case 'salacberry':
-					if (genTable.formatType === "doubles") goodItems.push(id);
-					else greatItems.push(id);
-					break;
+					// if (genTable.formatType === "doubles") goodItems.push(id);
+					// else greatItems.push(id);
+					// break;
 				// just doubles
 				case 'safetygoggles':
 				case 'ejectbutton':
 				case 'ejectpack':
-					if (genTable.formatType === "doubles") greatItems.push(id);
-					else goodItems.push(id);
-					break;
+					// if (genTable.formatType === "doubles") greatItems.push(id);
+					// else goodItems.push(id);
+					// break;
 				// doubles + metronome
 				case 'covertcloak':
 				case 'clearamulet':
 				case 'weaknesspolicy':
-					if (genTable.formatType === "doubles") greatItems.push(id);
-					else goodItems.push(id);
-					break;
+					// if (genTable.formatType === "doubles") greatItems.push(id);
+					// else goodItems.push(id);
+					// break;
 				// metronome only
 				case 'mirrorherb':
 					goodItems.push(id);
@@ -590,10 +628,10 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 					else greatItems.push(id);
 					break;
 				case 'sitrusberry':
-					if (Dex.mod(gen).data.Scripts.gen > 3 && (Dex.mod(gen).data.Scripts.gen < 7 || genTable.formatType === "doubles")) greatItems.push(id);
-					else if (Dex.mod(gen).data.Scripts.gen > 6) goodItems.push(id);
-					else poorItems.push(id);
-					break;
+					// if (Dex.mod(gen).data.Scripts.gen > 3 && (Dex.mod(gen).data.Scripts.gen < 7 || genTable.formatType === "doubles")) greatItems.push(id);
+					// else if (Dex.mod(gen).data.Scripts.gen > 6) goodItems.push(id);
+					// else poorItems.push(id);
+					// break;
 				case 'aguavberry':
 				case 'figyberry':
 				case 'iapapaberry':
@@ -735,13 +773,13 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 					) {
 						badItems.push(id);
 					} else if (item.name.startsWith("TR")) {
-						if (genTable.bonusRules !== undefined && 'Broken Record' in genTable.bonusRules) {
-							console.log("Broken Record Spotted");
-							goodItems.push(id);
-						}
-						else {
-							badItems.push(id);
-						}
+						// if (genTable.bonusRules !== undefined && 'Broken Record' in genTable.bonusRules) {
+						// 	console.log("Broken Record Spotted");
+						// 	goodItems.push(id);
+						// }
+						// else {
+						// 	badItems.push(id);
+						// }
 					} else if (item.name.endsWith(" Gem") && item.name !== "Normal Gem") {
 						if (Dex.mod(gen).data.Scripts.gen >= 6) {
 							unreleasedItems.push(id);

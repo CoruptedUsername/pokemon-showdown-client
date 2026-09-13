@@ -105,8 +105,6 @@ export class TeamEditorState extends PSModel {
 			currentBuilder = window.BattleTeambuilderTable.formats[formatid].builder;
 		}
 
-		console.log(formatid);
-
 		if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid]) {
 			if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid].hasOwnProperty("bonusRules")) {
 				if ("AAA" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
@@ -127,7 +125,6 @@ export class TeamEditorState extends PSModel {
 				}
 			}
 			this.defaultLevel = window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].defaultLevel;
-			console.log(this.defaultLevel);
 		}
 	}
 	stringifyFocus(focus: FocusState | null): string {
@@ -728,7 +725,7 @@ export class TeamEditorState extends PSModel {
 	}
 	pokemonDefensiveCoverage(set: Dex.PokemonSet) {
 		const coverage: Record<string, number> = {};
-		const species = this.dex.species.get(set.species);
+		const species = this.dex.species.get(set.species, this.format);
 		const abilityid = toID(set.ability);
 		for (const type of this.dex.types.names()) {
 			coverage[type] = this.getWeakness(species.types, abilityid, type);
