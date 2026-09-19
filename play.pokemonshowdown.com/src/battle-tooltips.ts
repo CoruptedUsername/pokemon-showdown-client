@@ -2018,7 +2018,6 @@ export class BattleTooltips {
 		return factor * otherFactor;
 	}
 	getMoveTypeText(move: Dex.Move, value: ModifiableValue, forMaxMove?: boolean | Dex.Move) {
-		console.trace("");
 		const [moveType, category] = this.getMoveType(move, value, forMaxMove);
 
 		const pokemon = value.pokemon;
