@@ -646,6 +646,8 @@ class BattlePanel extends PSRoomPanel<BattleRoom> {
 	renderMoveControls(active: BattleRequestActivePokemon, choices: BattleChoiceBuilder) {
 		const battle = this.props.room.battle;
 		console.log(window.BattleTeambuilderTable);
+		console.log(battle.formatid);
+		console.log(battle.format);
 		const dex = battle.dex.mod(window.BattleTeambuilderTable.formats[battle.formatid] ?? "gen9");
 		console.log(dex);
 		const pokemonIndex = choices.index();
