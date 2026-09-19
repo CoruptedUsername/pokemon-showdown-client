@@ -2021,6 +2021,7 @@ export class BattleTooltips {
 		const [moveType, category] = this.getMoveType(move, value, forMaxMove);
 
 		const pokemon = value.pokemon;
+		console.log(value);
 		console.log(pokemon);
 		console.log(pokemon.side);
 		console.log(pokemon.side.foe);
