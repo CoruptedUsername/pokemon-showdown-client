@@ -689,6 +689,7 @@ export class BattleScene implements BattleSceneStub {
 			const [iconType, pokeIndex] = sidebarIcons[i];
 			const poke = pokeIndex !== null ? side.pokemon[pokeIndex] : null;
 			const tooltipCode = ` class="picon has-tooltip" data-tooltip="pokemon|${side.n}|${pokeIndex!}${iconType === 'pokemon-illusion' ? '|illusion' : ''}"`;
+			let mod = window.BattleTeambuilderTable.formats[this.battle.tier] ?? "gen9";
 			if (iconType === 'empty') {
 				pokemonhtml += `<span class="picon" style="${Dex.getPokemonIcon('pokeball-none')}"></span>`;
 			} else if (noShow) {
@@ -707,10 +708,10 @@ export class BattleScene implements BattleSceneStub {
 				// in VGC (bring 6 pick 4) and other pick-less-than-you-bring formats, this is
 				// a pokemon that's been brought but not necessarily picked
 				const details = this.getDetailsText(poke);
-				pokemonhtml += `<span${tooltipCode} style="${Dex.getPokemonIcon(poke, !side.isFar, window.BattleTeambuilderTable.formats[toID(this.battle.tier)]?.mod)};opacity:0.6" aria-label="${details}"></span>`;
+				pokemonhtml += `<span${tooltipCode} style="${Dex.getPokemonIcon(poke, !side.isFar, mod)};opacity:0.6" aria-label="${details}"></span>`;
 			} else {
 				const details = this.getDetailsText(poke);
-				pokemonhtml += `<span${tooltipCode} style="${Dex.getPokemonIcon(poke, !side.isFar, window.BattleTeambuilderTable.formats[toID(this.battle.tier)]?.mod)}" aria-label="${details}"></span>`;
+				pokemonhtml += `<span${tooltipCode} style="${Dex.getPokemonIcon(poke, !side.isFar, mod)}" aria-label="${details}"></span>`;
 			}
 			if (i % 3 === 2) pokemonhtml += `</div><div class="teamicons">`;
 		}
@@ -865,10 +866,11 @@ export class BattleScene implements BattleSceneStub {
 				}
 				if (pokemon.speciesForme === 'Ludicolo') ludicoloCount++;
 				if (pokemon.speciesForme === 'Lombre') lombreCount++;
+				let mod = window.BattleTeambuilderTable.formats[this.battle.tier] ?? "gen9";
 				let spriteData = Dex.getSpriteData(pokemon, !!spriteIndex, {
 					gen: this.gen,
 					noScale: true,
-					mod: window.BattleTeambuilderTable.formats[toID(this.battle.tier)].mod,
+					mod: mod,
 				});
 				let y = 0;
 				let x = 0;
@@ -1114,9 +1116,10 @@ export class BattleScene implements BattleSceneStub {
 	}
 
 	addPokemonSprite(pokemon: Pokemon) {
+		mod = window.BattleTeambuilderTable.formats[this.battle.tier] ?? "gen9";;
 		const sprite = new PokemonSprite(Dex.getSpriteData(pokemon, pokemon.side.isFar, {
 			gen: this.gen,
-			mod: window.BattleTeambuilderTable.formats[toID(this.battle.tier)].mod,
+			mod: mod,
 		}), {
 			x: pokemon.side.x,
 			y: pokemon.side.y,
@@ -2016,7 +2019,7 @@ export class PokemonSprite extends Sprite {
 		if (this.$sub) return;
 		const subsp = Dex.getSpriteData('substitute', this.isFrontSprite, {
 			gen: this.scene.gen,
-			mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
+			mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
 		});
 		this.subsp = subsp;
 		this.$sub = $('<img src="' + subsp.url + `" style="display:block;opacity:0;position:absolute;transform:scaleX(${subsp.shouldFlip?-1:1})"` + (subsp.pixelated ? ' class="pixelated"' : '') + ' />');
@@ -2131,7 +2134,7 @@ export class PokemonSprite extends Sprite {
 			if (!this.oldsp) this.oldsp = this.sp;
 			this.sp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 				gen: this.scene.gen,
-				mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
+				mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
 			});
 		} else if (this.oldsp) {
 			this.sp = this.oldsp;
@@ -2536,7 +2539,7 @@ export class PokemonSprite extends Sprite {
 		if (!this.scene.animating && !isPermanent) return;
 		let sp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 			gen: this.scene.gen,
-			mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
+			mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
 		});
 		let oldsp = this.sp;
 		if (isPermanent) {
@@ -2544,7 +2547,7 @@ export class PokemonSprite extends Sprite {
 				// if a permanent forme change happens while dynamaxed, we need an undynamaxed sprite to go back to
 				this.oldsp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 					gen: this.scene.gen,
-					mod: window.BattleTeambuilderTable.formats[toID(this.scene.battle.tier)].mod,
+					mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
 					dynamax: false,
 				});
 			} else {

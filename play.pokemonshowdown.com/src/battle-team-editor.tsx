@@ -98,33 +98,29 @@ export class TeamEditorState extends PSModel {
 		this.dex = Dex.forFormat(formatid);
 		this.gen = this.dex.gen;
 
-		let currentBuilder = "gen9";
+		let currentBuilder = window.BattleTeambuilderTable.formats[formatid] ?? `gen${this.gen}`;
 		this.defaultLevel = 100;
 
-		if (formatid in window.BattleTeambuilderTable.formats) {
-			currentBuilder = window.BattleTeambuilderTable.formats[formatid].builder;
-		}
-
-		if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid]) {
-			if (window.BattleTeambuilderTable[currentBuilder]?.formatNames[formatid].hasOwnProperty("bonusRules")) {
-				if ("AAA" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+		if (window.BattleTeambuilderTable[currentBuilder]?.formats?.[formatid]) {
+			if (window.BattleTeambuilderTable[currentBuilder]?.formats[formatid].hasOwnProperty("bonusRules")) {
+				if ("AAA" in window.BattleTeambuilderTable[currentBuilder]?.formats[formatid].bonusRules) {
 					this.abilityLegality = 'hackmons';
 				} else {
 					this.abilityLegality = 'normal';
 				}
-				if ("Hackmons" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules ||
-					"Balanced Hackmons" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+				if ("Hackmons" in window.BattleTeambuilderTable[currentBuilder]?.formats[formatid].bonusRules ||
+					"Balanced Hackmons" in window.BattleTeambuilderTable[currentBuilder]?.formats[formatid].bonusRules) {
 					this.formeLegality = 'hackmons';
 					this.abilityLegality = 'hackmons';
-				} else if ("Metronome" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules ||
-					"Custom Game" in window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].bonusRules) {
+				} else if ("Metronome" in window.BattleTeambuilderTable[currentBuilder]?.formats[formatid].bonusRules ||
+					"Custom Game" in window.BattleTeambuilderTable[currentBuilder]?.formats[formatid].bonusRules) {
 					this.formeLegality = 'custom';
 					this.abilityLegality = 'hackmons';
 				} else {
 					this.formeLegality = 'normal';
 				}
 			}
-			this.defaultLevel = window.BattleTeambuilderTable[currentBuilder].formatNames[formatid].defaultLevel;
+			this.defaultLevel = window.BattleTeambuilderTable[currentBuilder]?.formats[formatid].defaultLevel;
 		}
 	}
 	stringifyFocus(focus: FocusState | null): string {
@@ -911,16 +907,17 @@ export class TeamEditorState extends PSModel {
 		if (TeamEditorState.clipboard.teams !== null) {
 			formatName = Object.values(TeamEditorState.clipboard.teams)[0].team.format;
 		}
+		let mod = window.BattleTeambuilderTable.formats[formatName] ?? `gen${this.dex.mod}`;
 		const renderSet = (set: Dex.PokemonSet) => <div class="set">
 			<small>
-				<PSIcon pokemon={set} mod={window.BattleTeambuilderTable.formats?.[formatName]?.mod} /> {set.name || set.species}
+				<PSIcon pokemon={set} mod={mod} /> {set.name || set.species}
 				{set.ability && ` [${set.ability}]`}{set.item && ` @ ${set.item}`}
 				{} - {set.moves.join(' / ') || '(No moves)'}
 			</small>
 		</div>;
 		const renderTeam = (team: Team, sets: Dex.PokemonSet[]) => <div class="set"><small>
 			<strong>{team.name}</strong><br />
-			{sets.map(set => <PSIcon pokemon={set} mod={window.BattleTeambuilderTable.formats?.[formatName]?.mod} />)}
+			{sets.map(set => <PSIcon pokemon={set} mod={mod} />)}
 		</small></div>;
 
 		return <div class="infobox">

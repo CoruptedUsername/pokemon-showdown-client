@@ -143,10 +143,7 @@ export function TeamBox(props: {
 }) {
 	const team = props.team;
 	let contents;
-	let mod = "";
-	if (team && window.BattleTeambuilderTable.formats[team.format]) {
-		mod = window.BattleTeambuilderTable.formats[team.format].mod;
-	}
+	let mod = window.BattleTeambuilderTable.formats[team?.format] ?? "";
 	if (team) {
 		team.iconCache ||= team.packedTeam ? (
 			Teams.unpackSpeciesOnly(team.packedTeam).map(
