@@ -689,6 +689,7 @@ export class BattleScene implements BattleSceneStub {
 			const [iconType, pokeIndex] = sidebarIcons[i];
 			const poke = pokeIndex !== null ? side.pokemon[pokeIndex] : null;
 			const tooltipCode = ` class="picon has-tooltip" data-tooltip="pokemon|${side.n}|${pokeIndex!}${iconType === 'pokemon-illusion' ? '|illusion' : ''}"`;
+			console.log(this.battle.tier);
 			let mod = window.BattleTeambuilderTable.formats[this.battle.tier] ?? "gen9";
 			if (iconType === 'empty') {
 				pokemonhtml += `<span class="picon" style="${Dex.getPokemonIcon('pokeball-none')}"></span>`;
