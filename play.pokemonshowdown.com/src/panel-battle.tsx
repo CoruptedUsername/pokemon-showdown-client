@@ -650,6 +650,11 @@ class BattlePanel extends PSRoomPanel<BattleRoom> {
 		const activeIndex = battle.mySide.n > 1 ? pokemonIndex + battle.pokemonControlled : pokemonIndex;
 		const serverPokemon = choices.request.side!.pokemon[pokemonIndex];
 		const valueTracker = new ModifiableValue(battle, battle.nearSide.active[activeIndex]!, serverPokemon);
+		console.log(battle.nearSide);
+		console.log(battle.nearSide.active);
+		console.log(activeIndex);
+		console.log(battle.nearSide.active[activeIndex]);
+		console.log(battle.nearSide.active[activeIndex]!);
 		const tooltips = (battle.scene as BattleScene).tooltips;
 
 		if (choices.current.max || (active.maxMoves && !active.canDynamax)) {
