@@ -650,6 +650,7 @@ class BattlePanel extends PSRoomPanel<BattleRoom> {
 		console.log(battle.format);
 		const dex = battle.dex.mod(window.BattleTeambuilderTable.formats[battle.formatid] ?? "gen9");
 		console.log(dex);
+		console.log(battle.tier);
 		const pokemonIndex = choices.index();
 		const activeIndex = battle.mySide.n > 1 ? pokemonIndex + battle.pokemonControlled : pokemonIndex;
 		const serverPokemon = choices.request.side!.pokemon[pokemonIndex];
