@@ -867,6 +867,7 @@ export class BattleScene implements BattleSceneStub {
 				}
 				if (pokemon.speciesForme === 'Ludicolo') ludicoloCount++;
 				if (pokemon.speciesForme === 'Lombre') lombreCount++;
+				console.log(this.battle.tier);
 				let mod = window.BattleTeambuilderTable.formats[this.battle.tier] ?? "gen9";
 				let spriteData = Dex.getSpriteData(pokemon, !!spriteIndex, {
 					gen: this.gen,
@@ -1117,6 +1118,7 @@ export class BattleScene implements BattleSceneStub {
 	}
 
 	addPokemonSprite(pokemon: Pokemon) {
+		console.log(this.battle.tier);
 		mod = window.BattleTeambuilderTable.formats[this.battle.tier] ?? "gen9";;
 		const sprite = new PokemonSprite(Dex.getSpriteData(pokemon, pokemon.side.isFar, {
 			gen: this.gen,
@@ -2018,6 +2020,7 @@ export class PokemonSprite extends Sprite {
 	animSub(instant?: boolean, noAnim?: boolean) {
 		if (!this.scene.animating) return;
 		if (this.$sub) return;
+		console.log(this.scene.battle.tier);
 		const subsp = Dex.getSpriteData('substitute', this.isFrontSprite, {
 			gen: this.scene.gen,
 			mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
@@ -2133,6 +2136,7 @@ export class PokemonSprite extends Sprite {
 
 		if (pokemon.volatiles.formechange || pokemon.volatiles.dynamax || pokemon.volatiles.terastallize) {
 			if (!this.oldsp) this.oldsp = this.sp;
+			console.log(this.scene.battle.tier);
 			this.sp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 				gen: this.scene.gen,
 				mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
@@ -2538,6 +2542,7 @@ export class PokemonSprite extends Sprite {
 	 */
 	animTransform(pokemon: Pokemon, useSpeciesAnim?: boolean, isPermanent?: boolean) {
 		if (!this.scene.animating && !isPermanent) return;
+		console.log(this.scene.battle.tier);
 		let sp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 			gen: this.scene.gen,
 			mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
@@ -2546,6 +2551,7 @@ export class PokemonSprite extends Sprite {
 		if (isPermanent) {
 			if (pokemon.volatiles.dynamax) {
 				// if a permanent forme change happens while dynamaxed, we need an undynamaxed sprite to go back to
+				console.log(this.scene.battle.tier);
 				this.oldsp = Dex.getSpriteData(pokemon, this.isFrontSprite, {
 					gen: this.scene.gen,
 					mod: window.BattleTeambuilderTable.formats[this.scene.battle.tier] ?? "gen9",
