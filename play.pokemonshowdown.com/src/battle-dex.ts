@@ -731,6 +731,10 @@ export const Dex = new class implements ModdedDex {
 		}
 
 		let animatedSprite = false;
+		console.log(Dex.prefs('noanim'));
+		console.log(Dex.prefs('nogif'));
+		console.log(spriteData.gen);
+		console.log(spriteOverride);
 		if (!Dex.prefs('noanim') && !Dex.prefs('nogif') && spriteData.gen >= 5 && !spriteOverride) {
 			const animationArray: [AnyObject, string][] = [];
 			if (baseDir === '' && window.BattlePokemonSprites) {
