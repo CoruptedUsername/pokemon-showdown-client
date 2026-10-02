@@ -731,10 +731,6 @@ export const Dex = new class implements ModdedDex {
 		}
 
 		let animatedSprite = false;
-		console.log(Dex.prefs('noanim'));
-		console.log(Dex.prefs('nogif'));
-		console.log(spriteData.gen);
-		console.log(spriteOverride);
 		if (!Dex.prefs('noanim') && !Dex.prefs('nogif') && spriteData.gen >= 5 && !spriteOverride) {
 			const animationArray: [AnyObject, string][] = [];
 			if (baseDir === '' && window.BattlePokemonSprites) {
@@ -744,7 +740,6 @@ export const Dex = new class implements ModdedDex {
 				animationArray.push([BattlePokemonSpritesBW[speciesid], 'gen5']);
 			}
 			for (const [animationData, animDir] of animationArray) {
-				console.log("Checking animation");
 				if (!animationData) continue;
 				if (animationData[facing + 'f'] && options.gender === 'F' && customOptions[2]) facing += 'f';
 				if (!animationData[facing]) continue;
@@ -763,6 +758,7 @@ export const Dex = new class implements ModdedDex {
 			spriteData.url = `/sprites/mods/${options.mod}${window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].path}/${toID(pokemon)}` + (customOptions[0] ? "Back" : "") + (customOptions[1] ? "Shiny" : "") + (customOptions[2] ? "Female" : "") + ".png";
 		}
 		if (!animatedSprite && !spriteOverride) {
+			console.log(baseDir, dir);
 			// There is no entry or enough data in pokedex-mini.js
 			// Handle these in case-by-case basis; either using BW sprites or matching the played gen.
 			dir = (baseDir || 'gen5') + dir;
