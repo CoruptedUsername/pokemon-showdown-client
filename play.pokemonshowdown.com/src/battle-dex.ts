@@ -793,7 +793,7 @@ export const Dex = new class implements ModdedDex {
 			spriteData.h *= 1.5;
 			spriteData.y += -11;
 		}
-
+		console.log(spriteData);
 		return spriteData;
 	}
 
