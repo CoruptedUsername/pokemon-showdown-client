@@ -578,7 +578,6 @@ export const Dex = new class implements ModdedDex {
 		dynamax?: boolean,
 	} = { gen: 6 })
 	{
-		console.log(pokemon, isFront, options.mod, options.gen, this.gen);
 		let copySprite = false;
 		let mechanicsGen = options.gen || 6;
 		let isDynamax = !!options.dynamax;
@@ -671,10 +670,7 @@ export const Dex = new class implements ModdedDex {
 		let graphicsGen = mechanicsGen;
 		if (Dex.prefs('nopastgens') && !copySprite) graphicsGen = 6;
 		if (Dex.prefs('bwgfx') && graphicsGen >= 6 && !copySprite) graphicsGen = 5;
-		console.log(graphicsGen);
-		console.log(species.gen);
 		spriteData.gen = Math.max(graphicsGen, Math.min(species.gen, 5));
-		console.log(spriteData.gen);
 		const baseDir = ['', 'gen1', 'gen2', 'gen3', 'gen4', 'gen5', '', '', '', ''][spriteData.gen];
 
 		let miscData = null;
@@ -723,7 +719,6 @@ export const Dex = new class implements ModdedDex {
 				spriteData.h *= 0.5;
 				spriteData.y += -11;
 			}
-			console.log(spriteData);
 			return spriteData;
 		}
 
@@ -756,12 +751,10 @@ export const Dex = new class implements ModdedDex {
 				break;
 			}
 		}
-		console.log(spriteData.url);
 		if (spriteOverride && options.mod) {
 			spriteData.url = `/sprites/mods/${options.mod}${window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].path}/${toID(pokemon)}` + (customOptions[0] ? "Back" : "") + (customOptions[1] ? "Shiny" : "") + (customOptions[2] ? "Female" : "") + ".png";
 		}
 		if (!animatedSprite && !spriteOverride) {
-			console.log(baseDir, dir);
 			// There is no entry or enough data in pokedex-mini.js
 			// Handle these in case-by-case basis; either using BW sprites or matching the played gen.
 			dir = (baseDir || 'gen5') + dir;
@@ -798,7 +791,6 @@ export const Dex = new class implements ModdedDex {
 			spriteData.h *= 1.5;
 			spriteData.y += -11;
 		}
-		console.log(spriteData);
 		return spriteData;
 	}
 
