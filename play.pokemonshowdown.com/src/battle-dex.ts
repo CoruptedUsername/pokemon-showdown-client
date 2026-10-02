@@ -671,7 +671,10 @@ export const Dex = new class implements ModdedDex {
 		let graphicsGen = mechanicsGen;
 		if (Dex.prefs('nopastgens') && !copySprite) graphicsGen = 6;
 		if (Dex.prefs('bwgfx') && graphicsGen >= 6 && !copySprite) graphicsGen = 5;
+		console.log(graphicsGen);
+		console.log(species.gen);
 		spriteData.gen = Math.max(graphicsGen, Math.min(species.gen, 5));
+		console.log(spriteData.gen);
 		const baseDir = ['', 'gen1', 'gen2', 'gen3', 'gen4', 'gen5', '', '', '', ''][spriteData.gen];
 
 		let miscData = null;
