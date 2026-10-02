@@ -739,6 +739,7 @@ export const Dex = new class implements ModdedDex {
 			const animationArray: [AnyObject, string][] = [];
 			console.log(baseDir);
 			console.log(window.BattlePokemonSprites);
+			console.log(window.BattlePokemonSpritesBW);
 			if (baseDir === '' && window.BattlePokemonSprites) {
 				animationArray.push([BattlePokemonSprites[speciesid], '']);
 			}
