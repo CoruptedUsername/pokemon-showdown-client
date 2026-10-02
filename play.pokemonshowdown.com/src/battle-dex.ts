@@ -737,9 +737,6 @@ export const Dex = new class implements ModdedDex {
 		console.log(spriteOverride);
 		if (!Dex.prefs('noanim') && !Dex.prefs('nogif') && spriteData.gen >= 5 && !spriteOverride) {
 			const animationArray: [AnyObject, string][] = [];
-			console.log(baseDir);
-			console.log(window.BattlePokemonSprites);
-			console.log(window.BattlePokemonSpritesBW);
 			if (baseDir === '' && window.BattlePokemonSprites) {
 				animationArray.push([BattlePokemonSprites[speciesid], '']);
 			}
@@ -747,6 +744,7 @@ export const Dex = new class implements ModdedDex {
 				animationArray.push([BattlePokemonSpritesBW[speciesid], 'gen5']);
 			}
 			for (const [animationData, animDir] of animationArray) {
+				console.log("Checking animation");
 				if (!animationData) continue;
 				if (animationData[facing + 'f'] && options.gender === 'F' && customOptions[2]) facing += 'f';
 				if (!animationData[facing]) continue;
