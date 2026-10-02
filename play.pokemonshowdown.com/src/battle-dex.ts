@@ -752,6 +752,8 @@ export const Dex = new class implements ModdedDex {
 				break;
 			}
 		}
+		console.log(dir);
+		console.log(animatedSprite);
 		if (spriteOverride && options.mod) {
 			spriteData.url = `/sprites/mods/${options.mod}${window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].path}/${toID(pokemon)}` + (customOptions[0] ? "Back" : "") + (customOptions[1] ? "Shiny" : "") + (customOptions[2] ? "Female" : "") + ".png";
 		}
