@@ -737,6 +737,8 @@ export const Dex = new class implements ModdedDex {
 		console.log(spriteOverride);
 		if (!Dex.prefs('noanim') && !Dex.prefs('nogif') && spriteData.gen >= 5 && !spriteOverride) {
 			const animationArray: [AnyObject, string][] = [];
+			console.log(baseDir);
+			console.log(window.BattlePokemonSprites);
 			if (baseDir === '' && window.BattlePokemonSprites) {
 				animationArray.push([BattlePokemonSprites[speciesid], '']);
 			}
@@ -757,6 +759,7 @@ export const Dex = new class implements ModdedDex {
 				break;
 			}
 		}
+		console.log(spriteData.url);
 		if (spriteOverride && options.mod) {
 			spriteData.url = `/sprites/mods/${options.mod}${window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].path}/${toID(pokemon)}` + (customOptions[0] ? "Back" : "") + (customOptions[1] ? "Shiny" : "") + (customOptions[2] ? "Female" : "") + ".png";
 		}
