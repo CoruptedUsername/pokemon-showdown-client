@@ -653,7 +653,7 @@ export const Dex = new class implements ModdedDex {
 			dir = '';
 			facing = 'front';
 		} else {
-			dir = customOptions[0] ? 'back' : '';
+			dir = customOptions[0] ? '-back' : '';
 			facing = customOptions[0] ? 'back' : 'front';
 		}
 
