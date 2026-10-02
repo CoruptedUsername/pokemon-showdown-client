@@ -49,7 +49,6 @@ function updateSizes() {
 			let spriteid = species.spriteid;
 			if (formeName) spriteid += '-' + toID(formeName).slice(species.id.length);
 			const id = toID(spriteid);
-
 			{
 				const row = { num: species.num };
 				const frontSize = sizeObj('play.pokemonshowdown.com/sprites/ani/' + spriteid + '.gif');

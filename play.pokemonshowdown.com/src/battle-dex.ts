@@ -644,6 +644,7 @@ export const Dex = new class implements ModdedDex {
 			shiny: options.shiny && customOptions[1],
 			shouldFlip: !isFront && !customOptions[0],
 		};
+		console.log(spriteData.url);
 		let name = species.spriteid;
 		let dir;
 		let facing;
