@@ -720,6 +720,7 @@ export const Dex = new class implements ModdedDex {
 				spriteData.h *= 0.5;
 				spriteData.y += -11;
 			}
+			console.log(spriteData);
 			return spriteData;
 		}
 
