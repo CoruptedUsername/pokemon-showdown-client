@@ -244,6 +244,13 @@ export class DexSearch {
 	}
 
 	filterLabel(filterType: string) {
+		const dexMod = this.dex.modid;
+		const format = this.typedSearch.format;
+		const bonusRules = window.BattleTeambuilderTable[dexMod]?.formats?.[format]?.bonusRules ?? [];
+		if (bonusRules.includes('Trademarked') && this.typedSearch && this.typedSearch.searchType === 'ability' &&
+			filterType === 'move') {
+			return null;
+		}
 		if (this.typedSearch && this.typedSearch.searchType !== filterType) {
 			return 'Filter';
 		}
@@ -262,6 +269,7 @@ export class DexSearch {
 
 		this.exactMatch = false;
 		let searchType: SearchType | '' = this.typedSearch?.searchType || '';
+
 
 		// If searchType exists, we're searching mainly for results of that type.
 		// We'll still search for results of other types, but those results
@@ -425,14 +433,23 @@ export class DexSearch {
 			// For performance, with a query length of 1, we only fill the first bucket
 			if (query.length === 1 && typeIndex !== (searchType ? searchTypeIndex : 1)) continue;
 
+			const dexMod = this.dex.modid;
+			const format = this.typedSearch.format;
+			const bonusRules = window.BattleTeambuilderTable[dexMod]?.formats?.[format]?.bonusRules ?? [];
+			const isStatusMove = this.dex.moves.get(id)?.category === 'Status' && typeIndex === 4;
+
 			// For pokemon queries, accept types/tier/abilities/moves/eggroups as filters
 			if (searchType === 'pokemon' && (typeIndex === 5 || typeIndex > 7)) continue;
 			// For move queries, accept types/categories as filters
 			if (searchType === 'move' && ((typeIndex !== 8 && typeIndex > 4) || typeIndex === 3)) continue;
 			// For move queries in the teambuilder, don't accept pokemon as filters
 			if (searchType === 'move' && illegal && typeIndex === 1) continue;
-			// For ability/item queries, don't accept anything else as a filter
-			if ((searchType === 'ability' || searchType === 'item') && typeIndex !== searchTypeIndex) continue;
+			// For ability queries, only accept items as filters on occasion
+			if (searchType === 'ability' && !(typeIndex === searchTypeIndex ||
+				(bonusRules.includes('Trademarked') && isStatusMove)
+			)) continue;
+			// For Item queries, don't accept any filters
+			if (searchType === 'item' && typeIndex !== searchTypeIndex) continue;
 			// Query was a type name followed 'type'; only show types
 			if (qFilterType === 'type' && typeIndex !== 2) continue;
 			// hardcode cases of duplicate non-consecutive aliases
@@ -716,6 +733,11 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		// if (!searchType || !this.set) return;
 	}
 	getResults(filters?: SearchFilter[] | null, sortCol?: string | null, reverseSort?: boolean): SearchRow[] {
+
+		const format = this.format;
+		const dexMod = this.dex.modid;
+		const bonusRules = window.BattleTeambuilderTable[dexMod]?.formats?.[format]?.bonusRules ?? [];
+
 		if (sortCol === 'type') {
 			return [this.sortRow!, ...BattleTypeSearch.prototype.getDefaultResults.call(this, reverseSort)];
 		} else if (sortCol === 'category') {
@@ -732,6 +754,10 @@ abstract class BattleTypedSearch<T extends SearchType> {
 			const legalityFilter: { [id: string]: 1 } = {};
 			for (const [resultType, value] of this.baseResults) {
 				if (resultType === this.searchType) legalityFilter[value] = 1;
+				if (this.searchType === 'ability' && resultType === 'move' && bonusRules.includes('Trademarked')) {
+					legalityFilter[value] = 1;
+					console.log("aaa");
+				}
 			}
 			this.baseIllegalResults = [];
 			this.illegalReasons = {};
@@ -881,7 +907,7 @@ abstract class BattleTypedSearch<T extends SearchType> {
 		if (!table) return pokemon.tier;
 
 		let id = pokemon.id;
-		const tierType = table.formats[this.formatType]?.tierType ?? "tier";
+		const tierType = table.formats?.[this.formatType]?.tierType ?? "tier";
 
 		if (id in table.overrideTier) {
 			return table.overrideTier[id][tierType];
@@ -970,23 +996,20 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 		let isDoublesOrBS = isVGCOrBS || this.formatType?.includes('doubles');
 		const dex = this.dex;
 
-		let table = BattleTeambuilderTable[BattleTeambuilderTable.formats[this.formatType] ?? `gen${this.dex.gen}`];
+		let table = BattleTeambuilderTable[BattleTeambuilderTable.formats[format] ?? `gen${this.dex.gen}`];
 
-		if (!table.tierSet) {
-			table.tierSet = {};
+		if (!table.tiers) {
+			table.tiers = {};
 		}
 
-		if (!table.tierSet[format]) {
-			if (!table.tiers[format]) {
-				format = "base";
-			}
-			table.tierSet[format] = table.tiers[format].map((r: any) => {
+		if (!table.tiers[format]) {
+			table.tiers[format] = table.tiers[Object.keys(table.tiers)[0]];
+			table.tiers[format] = table.tiers[format].map((r: any) => {
 				if (typeof r === 'string') return ['pokemon', r];
 				return [r[0], r[1]];
 			});
-			table.tiers[format] = null;
 		}
-		let tierSet: SearchRow[] = table.tierSet[format];
+		let tierSet: SearchRow[] = table.tiers[format];
 		let slices: { [k: string]: number } = table.formatSlices;
 
 		// try {
@@ -1080,7 +1103,7 @@ class BattleAbilitySearch extends BattleTypedSearch<'ability'> {
 	}
 	getDefaultResults(reverseSort?: boolean): SearchRow[] {
 		const results: SearchRow[] = [];
-		for (let id in BattleAbilities) {
+		for (let id in BattleMovedex) {
 			results.push(['ability', id as ID]);
 		}
 		if (reverseSort) results.reverse();
@@ -1094,6 +1117,8 @@ class BattleAbilitySearch extends BattleTypedSearch<'ability'> {
 		const dex = this.dex;
 		let species = dex.species.get(this.species, format);
 		let abilitySet: SearchRow[] = [['header', "Abilities"]];
+		const dexMod = dex.modid;
+		const bonusRules = window.BattleTeambuilderTable[dexMod]?.formats?.[format]?.bonusRules ?? [];
 
 		if (species.isMega) {
 			abilitySet.unshift(['html', `Will be <strong>${species.abilities['0']}</strong> after Mega Evolving.`]);
@@ -1142,6 +1167,20 @@ class BattleAbilitySearch extends BattleTypedSearch<'ability'> {
 				// species is unused after this, so no need to replace
 			}
 		}
+		if (bonusRules.includes('Trademarked')) {
+			const moveSearcher = new BattleMoveSearch('move', this.format, this.species);
+			const allMoves = moveSearcher.getBaseResults();
+			const trademarkMoves = [];
+			for (const moveEntry of allMoves) {
+				if (moveEntry[0] === 'header') continue;
+				const move = dex.moves.get(moveEntry[1]);
+				if (move.category === 'Status') {
+					trademarkMoves.push(moveEntry);
+				}
+			}
+			abilitySet = [...abilitySet, ['header', "Trademarks"], ...trademarkMoves.sort((a, b) => a[1].localeCompare(b[1]))];
+		}
+
 		return abilitySet;
 	}
 	filter(row: SearchRow, filters: string[][]) {

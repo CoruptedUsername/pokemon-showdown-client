@@ -2656,6 +2656,11 @@ class TeamEditorForm extends TeamWizard {
 		const { editor } = this.props;
 		if (!value.trim()) return '';
 
+
+		const format = editor.team.format;
+		const mod = editor.dex.modid;
+		const bonusRules = window.BattleTeambuilderTable[mod]?.formats?.[format]?.bonusRules ?? [];
+
 		switch (type) {
 		case 'pokemon': {
 			const species = editor.dex.species.get(value);
@@ -2669,6 +2674,12 @@ class TeamEditorForm extends TeamWizard {
 		case 'ability': {
 			if (toID(value) === 'noability') return '';
 			const ability = editor.dex.abilities.get(value);
+			if (bonusRules.includes('Trademarked')) {
+				const move = editor.dex.moves.get(value);
+				if (move.exists) {
+					return move.name;
+				}
+			}
 			return ability.exists ? ability.name : null;
 		}
 		case 'move': {
@@ -2680,6 +2691,7 @@ class TeamEditorForm extends TeamWizard {
 		}
 	}
 	commitField(target: HTMLInputElement, selectNext?: boolean, reverse?: boolean) {
+		// console.trace("Committing Field");
 		const { editor } = this.props;
 		const focus = editor.parseFocus(target.getAttribute('data-focus')!);
 		if (!focus) return true;
@@ -2698,6 +2710,7 @@ class TeamEditorForm extends TeamWizard {
 			this.forceUpdate();
 			return true;
 		}
+
 
 		let canonical = this.canonicalValue(focus.type, target.value);
 		if (canonical === null) {

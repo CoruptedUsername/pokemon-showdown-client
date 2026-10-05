@@ -644,7 +644,6 @@ export const Dex = new class implements ModdedDex {
 			shiny: options.shiny && customOptions[1],
 			shouldFlip: !isFront && !customOptions[0],
 		};
-		console.log(spriteData.url);
 		let name = species.spriteid;
 		let dir;
 		let facing;
@@ -732,11 +731,7 @@ export const Dex = new class implements ModdedDex {
 		let animatedSprite = false;
 		if (!Dex.prefs('noanim') && !Dex.prefs('nogif') && spriteData.gen >= 5 && !spriteOverride) {
 			const animationArray: [AnyObject, string][] = [];
-			console.log(baseDir, window.BattlePokemonSprites);
 			if (baseDir === '' && window.BattlePokemonSprites) {
-				console.log(speciesid);
-				console.log(BattlePokemonSprites[speciesid]);
-				console.log("Pushing Sprite");
 				animationArray.push([BattlePokemonSprites[speciesid], '']);
 			}
 			if (window.BattlePokemonSpritesBW) {
@@ -756,8 +751,6 @@ export const Dex = new class implements ModdedDex {
 				break;
 			}
 		}
-		console.log(dir);
-		console.log(animatedSprite);
 		if (spriteOverride && options.mod) {
 			spriteData.url = `/sprites/mods/${options.mod}${window.BattleTeambuilderTable.sprites[options.mod].monSprites[toID(pokemon)].path}/${toID(pokemon)}` + (customOptions[0] ? "Back" : "") + (customOptions[1] ? "Shiny" : "") + (customOptions[2] ? "Female" : "") + ".png";
 		}

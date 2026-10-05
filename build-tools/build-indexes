@@ -158,6 +158,7 @@ for (const modDex in Dex.dexes) {
 					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].formatType = formatData.teambuilder.formatType;
 					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].allowedTiers = formatData.teambuilder.allowedTiers;
 					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].isNatDex = formatData.teambuilder.isNatDex;
+					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].bonusRules = formatData.teambuilder.bonusRules;
 				}
 			}
 		}

@@ -176,7 +176,7 @@ export class PSSearchResults extends preact.Component<{
 			`</a></li>`;
 	}
 
-	renderMoveRowHTML(index: number, id: ID, matchStart: number, matchEnd: number, errorMessage?: string) {
+	renderMoveRowHTML(index: number, id: ID, matchStart: number, matchEnd: number, errorMessage?: string, searchType?: string) {
 		let slot = null;
 		if (id.startsWith('_')) {
 			[slot, id] = id.slice(1).split('_') as [string, ID];
@@ -190,7 +190,10 @@ export class PSSearchResults extends preact.Component<{
 		const search = this.props.search;
 		const move = search.dex.moves.get(id);
 		if (!move) return `<li class="result" value="${index}">Unrecognized move</li>`;
-		const entry = slot ? `move|${move.name}|${slot}` : `move|${move.name}`;
+		let entry = slot ? `move|${move.name}|${slot}` : `move|${move.name}`;
+		if (searchType === 'ability') {
+			entry = `ability|${move.name}`;
+		}
 		const tagStart = (move.name.startsWith('Hidden Power') ? 12 : 0);
 
 		let buf = `<li class="result" value="${index}"><a ` +
@@ -325,7 +328,7 @@ export class PSSearchResults extends preact.Component<{
 		case 'pokemon':
 			return this.renderPokemonRowHTML(index, id, matchStart, matchEnd, errorMessage);
 		case 'move':
-			return this.renderMoveRowHTML(index, id, matchStart, matchEnd, errorMessage);
+			return this.renderMoveRowHTML(index, id, matchStart, matchEnd, errorMessage, search.typedSearch?.searchType);
 		case 'item':
 			return this.renderItemRowHTML(index, id, matchStart, matchEnd, errorMessage);
 		case 'ability':
