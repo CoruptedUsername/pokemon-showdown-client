@@ -756,7 +756,6 @@ abstract class BattleTypedSearch<T extends SearchType> {
 				if (resultType === this.searchType) legalityFilter[value] = 1;
 				if (this.searchType === 'ability' && resultType === 'move' && bonusRules.includes('Trademarked')) {
 					legalityFilter[value] = 1;
-					console.log("aaa");
 				}
 			}
 			this.baseIllegalResults = [];
@@ -1004,11 +1003,11 @@ class BattlePokemonSearch extends BattleTypedSearch<'pokemon'> {
 
 		if (!table.tiers[format]) {
 			table.tiers[format] = table.tiers[Object.keys(table.tiers)[0]];
-			table.tiers[format] = table.tiers[format].map((r: any) => {
-				if (typeof r === 'string') return ['pokemon', r];
-				return [r[0], r[1]];
-			});
 		}
+		table.tiers[format] = table.tiers[format].map((r: any) => {
+			if (typeof r === 'string') return ['pokemon', r];
+			return [r[0], r[1]];
+		});
 		let tierSet: SearchRow[] = table.tiers[format];
 		let slices: { [k: string]: number } = table.formatSlices;
 
