@@ -6,19 +6,29 @@ const child_process = require('node:child_process');
 
 process.chdir(__dirname + '/..');
 
+fs.mkdirSync('play.pokemonshowdown.com/data', { recursive: true });
+
+const noUpdate = process.argv.includes('--no-update');
 if (!fs.existsSync('caches/pokemon-showdown')) {
+	if (noUpdate) {
+		console.error('Missing caches/pokemon-showdown. Check out the server before using --no-update.');
+		process.exit(1);
+	}
 	child_process.execSync('git clone https://github.com/CoruptedUsername/pokemon-showdown.git', {
 		cwd: 'caches',
 		b: 'sprite-test',
 	});
 }
 
-process.stdout.write("Syncing data from Git repository... ");
-child_process.execSync('git pull', { cwd: 'caches/pokemon-showdown' });
+process.stdout.write(
+	noUpdate ? "Building data from existing server checkout... " : "Syncing data from Git repository... "
+);
+if (!noUpdate) child_process.execSync('git pull', { cwd: 'caches/pokemon-showdown' });
 child_process.execSync('npm run build', { cwd: 'caches/pokemon-showdown' });
 console.log("DONE");
 
 const Dex = require('../caches/pokemon-showdown/dist/sim/dex').Dex;
+const { CLIENT_MODS } = require('./build-translations');
 const CompoundWordNames = require('../caches/pokemon-showdown/dist/data/aliases').CompoundWordNames;
 const toID = Dex.toID;
 process.stdout.write("Loading gen 6 data... ");
@@ -157,7 +167,6 @@ for (const modDex in Dex.dexes) {
 					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].tierType = formatData.teambuilder.tierType;
 					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].formatType = formatData.teambuilder.formatType;
 					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].allowedTiers = formatData.teambuilder.allowedTiers;
-					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].isNatDex = formatData.teambuilder.isNatDex;
 					BattleTeambuilderTable[modDex].formats[toID(formatData.name)].bonusRules = formatData.teambuilder.bonusRules;
 				}
 			}
@@ -862,11 +871,12 @@ process.stdout.write("Building `data/teambuilder-tables.js`... ");
 	const overrideSpeciesKeys = [
 		'abilities', 'baseStats', 'cosmeticFormes', 'isNonstandard', 'requiredItems', 'types', 'unreleasedHidden',
 	];
+	// Descs omitted (they're all compiled into data/text/*)
 	const overrideMoveKeys = [
-		'accuracy', 'basePower', 'category', 'desc', 'flags', 'isNonstandard', 'pp', 'priority', 'shortDesc', 'target', 'type',
+		'accuracy', 'basePower', 'category', 'flags', 'isNonstandard', 'pp', 'priority', 'target', 'type',
 	];
-	const overrideAbilityKeys = ['desc', 'flags', 'isNonstandard', 'rating', 'shortDesc'];
-	const overrideItemKeys = ['desc', 'fling', 'isNonstandard', 'naturalGift', 'shortDesc', 'relevantTiers'];
+	const overrideAbilityKeys = ['flags', 'isNonstandard', 'rating'];
+	const overrideItemKeys = ['fling', 'isNonstandard', 'naturalGift', 'relevantTiers'];
 
 	//
 	// Mods
@@ -996,8 +1006,6 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 	const Moves = requireNoCache('../caches/pokemon-showdown/dist/data/moves.js').Moves;
 	for (const id in Moves) {
 		const move = Dex.moves.get(Moves[id].name);
-		if (move.desc) Moves[id].desc = move.desc;
-		if (move.shortDesc) Moves[id].shortDesc = move.shortDesc;
 		if (move.basePowerCallback) Moves[id].basePowerCallback = true;
 	}
 
@@ -1029,12 +1037,6 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 
 {
 	const Items = requireNoCache('../caches/pokemon-showdown/dist/data/items.js').Items;
-	for (const id in Items) {
-		const item = Dex.items.get(Items[id].name);
-		if (item.desc) Items[id].desc = item.desc;
-		if (item.shortDesc) Items[id].shortDesc = item.shortDesc;
-	}
-
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
 		if (Dex.mod(modDex).data.Teambuilders) {
@@ -1061,12 +1063,6 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 
 {
 	const Abilities = requireNoCache('../caches/pokemon-showdown/dist/data/abilities.js').Abilities;
-	for (const id in Abilities) {
-		const ability = Dex.abilities.get(Abilities[id].name);
-		if (ability.desc) Abilities[id].desc = ability.desc;
-		if (ability.shortDesc) Abilities[id].shortDesc = ability.shortDesc;
-	}
-
 	const BuilderMods = [];
 	for (const modDex in Dex.dexes) {
 		if (Dex.mod(modDex).data.Teambuilders) {
@@ -1139,34 +1135,11 @@ process.stdout.write("Building `data/moves,items,abilities,typechart,learnsets.j
 }
 
 /*********************************************************
- * Build text.js
+ * Build text/*.js
  *********************************************************/
 
 {
-	const textData = Dex.loadTextData();
-	const Text = textData.Default;
-
-	function assignData(id, entry) {
-		for (const key in entry) {
-			if (['name', 'desc', 'shortDesc'].includes(key)) continue;
-			const textEntry = Text[id] || (Text[id] = {});
-			if (key.startsWith('gen')) {
-				for (const modKey in entry[key]) {
-					if (['desc', 'shortDesc'].includes(key)) continue;
-					textEntry[modKey + 'Gen' + key.charAt(3)] = entry[key][modKey];
-				}
-			} else {
-				textEntry[key] = entry[key];
-			}
-		}
-	}
-
-	for (const id in textData.Moves) assignData(id, textData.Moves[id]);
-	for (const id in textData.Abilities) assignData(id, textData.Abilities[id]);
-	for (const id in textData.Items) assignData(id, textData.Items[id]);
-
-	const buf = 'exports.BattleText = ' + es3stringify(Text) + ';';
-	fs.writeFileSync('play.pokemonshowdown.com/data/text.js', buf);
+	require('./build-translations').buildTextFiles(Dex);
 }
 
 console.log("DONE");

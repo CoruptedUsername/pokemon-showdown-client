@@ -8,7 +8,135 @@ declare namespace preact {
 	type ComponentChildren = ComponentChild[] | ComponentChild | object | string | number | null | false;
 
 	/**
-	 * @deprecated
+	 * @deprecatedreturn <div class={`set-stats-form${narrow ? ' tiny-layout' : ''}`} role="dialog" aria-label={TL`Stats`}>
+	 * 			<div class="resultheader"><h3>{TL`EVs, IVs, and nature`}</h3></div>
+	 * 			<div class="pad">
+	 * 				{this.renderSpreadGuesser()}
+	 * 				<table>
+	 * 					<tr>
+	 * 						<th>{/* Stat name */
+}
+</th>
+* <th>{TL`Base`} < /th>
+* <th class = "setstatbar" > {/* Stat bar */} < /th>
+	* <th>{editor.format.isLetsGo ? TL`AVs` : editor.format.isChampions ? TL`Points` : TL`EVs`} < /th>
+	* <th>{/* EV slider */} < /th>
+	* {!
+editor.format.isChampions && <th>{useIVs ? TL`IVs` : TL`DVs`} < /th>}
+* <th>{/* Final stat */} < /th>
+* </tr>
+* {
+	stats.map(([statID, statName, stat]) => <tr>
+	* <th style = "text-align:right;font-weight:normal" > {statName} < /th>
+	* <td style = "text-align:right" > <strong>{baseStats[statID]} < /strong></td >
+* <td class = "setstatbar" > {this.renderStatbar(stat, statID)} < /td>
+* <td><input
+* name = {`ev-${statID}`
+}
+placeholder = {`${defaultEV || ''}`
+}
+*
+type = "text"
+inputMode = "numeric"
+
+class
+
+= "textbox default-placeholder stat-input"
+style = "width:40px;vertical-align:middle"
+* onInput = {this.changeEV}
+onChange = {this.changeEV}
+onKeyDown = {this.keyDownStatInput}
+	* />{this.renderNatureButtons(statID)}</
+td >
+* <td><input
+* name = {`evslider-${statID}`
+}
+value = {set.evs?.[statID] ?? defaultEV}
+min = "0"
+max = {maxEV}
+step = {stepEV}
+* type = "range"
+
+class
+
+= "evslider"
+tabIndex = { - 1
+}
+aria - hidden
+* onPointerDown = {this.startEVSliderDrag}
+* onInput = {this.changeEV}
+onChange = {this.changeEV}
+	* /></
+td >
+* {!
+editor.format.isChampions && <td><input
+* name = {`iv-${statID}`
+}
+min = {0}
+max = {useIVs ? 31 : 15}
+placeholder = {`${defaultIVs[statID]}`
+}
+*
+style = {narrow ? "width:22px" : "width:40px"}
+type = {narrow ? 'text' : 'number'}
+inputMode = "numeric"
+* class = "textbox default-placeholder stat-input"
+onInput = {this.changeIV}
+* onChange = {this.changeIV}
+onKeyDown = {this.keyDownStatInput}
+	* /></
+td >
+}
+*
+<td style = "text-align:right" > <strong>{stat} < /strong></
+td >
+* </tr>)}
+* <tr>
+* <td colSpan = {2} > </td>
+* <td class = "setstatbar"
+style = "text-align:right" > {remaining !== null ? TL.label(TL`Remaining`) : <> & nbsp;
+</>}</
+td >
+* <td style = "text-align:center" > {remaining && remaining < 0 ? <b class = "message-error" > {remaining} < /b> : remaining}</td >
+* <td colSpan = {3}
+style = "text-align:right" > {this.renderIVMenu()} < /td>
+	* </tr>
+	* </table>
+	* {
+		editor.gen >= 3 && <p>
+		* {TL.label(TL`Nature`)} < select
+		* name = "nature" class = "select" onChange = {this.changeNature} value = {set.nature || 'Serious'}
+			* >
+			* {
+				Object.values(BattleNatures).map(curNature => (
+				* <option value = {curNature.name} >
+					* {TL(curNature)}
+					* {curNature.plus && ` (+${TL.statShort[curNature.plus]}, -${TL.statShort[curNature.minus!]})`}
+					* </option>
+					*)
+)
+}
+*
+</select>
+* </p>}
+* {
+	editor.gen >= 3 && !narrow && <p>
+		* <small><em>{
+			TL
+			.label(TL`Protip`)
+		} < /em>{TL('You can also set natures by typing {PLUS} and {MINUS} in the EV box.')
+		*                  .split(/(\{(?:PLUS|MINUS)\})/).map(part =>
+	* part === '{PLUS}' ? <kbd>+</kbd> : part === '{MINUS}' ? <kbd>-</kbd >
+:
+part
+*
+)
+}
+</small>
+* </p>}
+* {editor.gen >= 3 && this.renderStatOptimizer()}
+* </div>
+* </div>;
 	 *
 	 * Use Attributes instead
 	 */

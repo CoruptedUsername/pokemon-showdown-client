@@ -13,6 +13,7 @@
  * @license AGPLv3
  */
 
+
 import { Config, PS } from "./client-main";
 declare const ColorThief: any;
 
@@ -47,6 +48,7 @@ export class PSSubscription<T = any> {
 export class PSModel<T = null> {
 	subscriptions: PSSubscription<T>[] = [];
 	subscribe(listener: (value: T) => void) {
+		console.trace("hi3");
 		const subscription = new PSSubscription<T>(this, listener);
 		this.subscriptions.push(subscription);
 		return subscription;
